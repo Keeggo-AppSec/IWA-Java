@@ -50,7 +50,7 @@ jobs:
           SSC_TOKEN: ${{secrets.SSC_TOKEN}}
           SC_SAST_TOKEN: ${{secrets.CLIENT_AUTH_TOKEN}}
           # EXTRA_SC_SAST_LOGIN_OPTS: --socket-timeout=60s
-          SSC_APPVERSION: Solidity:Sample
+          SSC_APPVERSION: IWA:java
           # EXTRA_PACKAGE_OPTS: -bf custom-pom.xml
           SC_SAST_SENSOR_VERSION: 24.2
           # DO_WAIT: true
