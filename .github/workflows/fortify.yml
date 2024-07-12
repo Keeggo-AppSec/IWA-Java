@@ -41,15 +41,22 @@ jobs:
           distribution: 'temurin'
 
       # Perform Fortify on Demand SAST + SCA scan and import SAST results into GitHub code scanning alerts
-      - name: Run FoD SAST Scan
+      - name: Run ScanCentral SAST Scan
         uses: fortify/github-action@v1
         with:
           sast-scan: true
         env:
-          FOD_URL: https://ams.fortify.com
-          FOD_TENANT: ${{secrets.FOD_TENANT}}
-          FOD_USER: ${{secrets.FOD_USER}}
-          FOD_PASSWORD: ${{secrets.FOD_PAT}}
-          FOD_RELEASE: ${{ secrets.FOD_RELEASE_ID }}
-          EXTRA_PACKAGE_OPTS: -oss
-          DO_EXPORT: true
+          SSC_URL: ${{secrets.SSC_URL}}
+          SSC_TOKEN: ${{secrets.SSC_TOKEN}}
+          SC_SAST_TOKEN: ${{secrets.CLIENT_AUTH_TOKEN}}
+          # EXTRA_SC_SAST_LOGIN_OPTS: --socket-timeout=60s
+          SSC_APPVERSION: Solidity:Sample
+          # EXTRA_PACKAGE_OPTS: -bf custom-pom.xml
+          SC_SAST_SENSOR_VERSION: 24.2
+          # DO_WAIT: true
+          # DO_EXPORT: true
+          # TOOL_DEFINITIONS: https://ftfy.mycompany.com/tool-definitions/v1/tool-definitions.yaml.zip
+          # SSC_APPVERSION: MyApp:MyVersion                # SSC application version, default: <org>/<repo>:<branch>
+          # EXTRA_PACKAGE_OPTS: -bv myCustomPom.xml        # Extra 'scancentral package' options
+          # DO_WAIT: true                                  # Wait for scan completion, implied if 'DO_EXPORT: true'
+          # DO_EXPORT: true                                # Export SAST results to GitHub code scanning dashboard
