@@ -57,7 +57,16 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=IWA-Java -Dsonar.projectName='IWA-Java'
-        
+        # DT Upload SBOM
+      - uses: DependencyTrack/gh-upload-sbom@v3.0.0
+        with:
+          serverHostname: 'https://fortify-demo-lab-utils.keeggo.com/'
+          apiKey: ${{ secrets.DEPENDENCYTRACK_APIKEY }}
+          projectName: 'IWA'
+          projectVersion: 'Java'
+          bomFilename: "./target/bom.xml"
+          autoCreate: true
+
       # Perform Fortify on Demand SAST + SCA scan and import SAST results into GitHub code scanning alerts
       - name: Run ScanCentral SAST Scan
         uses: fortify/github-action@v1
