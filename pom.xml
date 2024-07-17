@@ -469,7 +469,7 @@
 		<version>2.5.2</version>
 		<executions>
 		    <execution>
-			<phase>package</phase>
+			<phase>compile</phase>
 			<goals>
 			    <goal>makeAggregateBom</goal>
 			</goals>
