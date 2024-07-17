@@ -63,7 +63,7 @@ jobs:
           serverHostname: 'https://fortify-demo-lab-utils.keeggo.com/'
           apiKey: ${{ secrets.DEPENDENCYTRACK_APIKEY }}
           projectName: 'IWA'
-          projectVersion: 'Java'
+          projectVersion: 'java'
           bomFilename: "./target/bom.xml"
           autoCreate: true
 
