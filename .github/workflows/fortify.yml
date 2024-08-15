@@ -21,7 +21,7 @@ name: Build + Sonar + Dependency Track + Debricked + Fortify SAST + Moob.Ai
 on: [push]
 # Steps
 jobs:
-  App-Sec-Stack:
+  Build:
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -39,7 +39,13 @@ jobs:
         with:
           java-version: 17
           distribution: 'temurin'
-          
+  Sonar:
+      runs-on: ubuntu-latest
+      permissions:
+        actions: read
+        contents: read
+        security-events: write
+      steps:
       # Sonarqube
       - name: Cache SonarQube packages
         uses: actions/cache@v1
@@ -60,7 +66,13 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=IWA-Java -Dsonar.projectName='IWA-Java'
-        
+  Dependency-Track:
+      runs-on: ubuntu-latest
+      permissions:
+        actions: read
+        contents: read
+        security-events: write
+      steps:        
         # Dependency Track - Upload SBOM
       - uses: DependencyTrack/gh-upload-sbom@v3.0.0
         with:
@@ -70,7 +82,13 @@ jobs:
           projectVersion: 'java'
           bomFilename: "./target/bom.xml"
           autoCreate: true
-
+  Debricked-SAST:
+      runs-on: ubuntu-latest
+      permissions:
+        actions: read
+        contents: read
+        security-events: write
+      steps:
       - name: Install Debricked and FCLI
         uses: fortify/github-action/setup@v1
         env:
@@ -91,18 +109,14 @@ jobs:
           bugtracker-utility: skip
           debricked-cli: latest
 
-      - name: Java Version
-        run: java -version
-      - name: FCLI Version
-        run: fcli -V
-      - name: Debricked CLI Version
-        run: debricked -v
+      - name: Util Versions
+        run: |
+          java -version
+          fcli -V
+          debricked -v
+        
       - name: Debricked Scan
         run: debricked scan -t ${{ secrets.DEBRICKED_TOKEN }} -r=IWA:java --commit=$GITHUB_RUN_ID
-
-      - name: Preparação e Envio Fortify  
-        run:  |
-          scancentral package --build-tool none -o APP.zip
       - name: Importa os Resultados Debricked no SSC  
         run:  |
           fcli ssc session login --url ${{secrets.SSC_URL}} --ci-token ${{secrets.SSC_TOKEN}}
