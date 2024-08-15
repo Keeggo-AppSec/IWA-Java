@@ -33,12 +33,6 @@ jobs:
       - name: Check Out Source Code
         uses: actions/checkout@v4
 
-      # Java is required to run the various Fortify utilities. Ensuring proper version is installed on the runner.
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          java-version: 17
-          distribution: 'temurin'
       # Sonarqube
       - name: Cache SonarQube packages
         uses: actions/cache@v1
@@ -46,17 +40,20 @@ jobs:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
+       # Mvn    
       - name: Cache Maven packages
         uses: actions/cache@v1
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
+       # Build   
       - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=IWA-Java -Dsonar.projectName='IWA-Java'
+        
         # Dependency Track - Upload SBOM
       - uses: DependencyTrack/gh-upload-sbom@v3.0.0
         with:
@@ -66,9 +63,7 @@ jobs:
           projectVersion: 'java'
           bomFilename: "./target/bom.xml"
           autoCreate: true
-#      - name: Print ENV
-#        run: env
-# Setup Tools Fortify
+
       - name: Install Debricked and FCLI
         uses: fortify/github-action/setup@v1
         env:
@@ -88,12 +83,24 @@ jobs:
           vuln-exporter: skip
           bugtracker-utility: skip
           debricked-cli: latest
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+          
+      - name: Java Version
+        run: java -v
       - name: FCLI Version
         run: fcli -V
       - name: Debricked CLI Version
         run: debricked -v
       - name: Debricked Scan
         run: debricked scan -t ${{ secrets.DEBRICKED_TOKEN }} -r=IWA:java --commit=$GITHUB_RUN_ID
+        
+      - name: Preparação e Envio Fortify  
+        run:  |
+          scancentral package --build-tool none -o APP.zip
       - name: Importa os Resultados Debricked no SSC  
         run:  |
           fcli ssc session login --url ${{secrets.SSC_URL}} --ci-token ${{secrets.SSC_TOKEN}}
