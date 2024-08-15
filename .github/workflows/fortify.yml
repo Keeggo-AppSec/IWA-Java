@@ -66,12 +66,11 @@ jobs:
           projectVersion: 'java'
           bomFilename: "./target/bom.xml"
           autoCreate: true
-
+      - name: Print ENV
+        run: env
 # Setup Tools Fortify
       - name: Install Debricked and FCLI
         uses: fortify/github-action/setup@v1
-        env:
-          SSC_APP: "IWA:java"
         with:
           tool-definitions: https://github.com/fortify/tool-definitions/releases/download/v1/tool-definitions.yaml.zip
           export-path: true
@@ -86,7 +85,7 @@ jobs:
       - name: Debricked CLI Version
         run: debricked -v
       - name: Debricked Scan
-        run: debricked scan -t ${{ secrets.DEBRICKED_TOKEN }} -r $SSC_APP --commit=${{ steps.date.outputs.date }}
+        run: debricked scan -t ${{ secrets.DEBRICKED_TOKEN }} -r=IWA:java --commit=${{ steps.date.outputs.date }}
 
       - name: Importa os Resultados Debricked no SSC  
         run:  |
