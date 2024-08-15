@@ -1,22 +1,27 @@
 ################################################################################################################################################
-# Fortify lets you build secure software fast with an appsec platform that automates testing throughout the DevSecOps pipeline. Fortify static,#
-# dynamic, interactive, and runtime security testing is available on premises or as a service. To learn more about Fortify, start a free trial #
-# or contact our sales team, visit microfocus.com/appsecurity.                                                                                 #
-#                                                                                                                                              #
-# Use this workflow template as a basis for integrating Fortify on Demand Static Application Security Testing(SAST) into your GitHub workflows.#
-# This template demonstrates the steps to prepare the code+dependencies, initiate a scan, download results once complete and import into       #
-# GitHub Security Code Scanning Alerts. Existing customers should review inputs and environment variables below to configure scanning against  #
-# an existing application in your Fortify on Demand tenant. Additional information is available in the comments throughout the workflow, the   #
-# documentation for the Fortify actions used, and the Fortify on Demand / ScanCentral Client product documentation. If you need additional     #
-# assistance with configuration, feel free to create a help ticket in the Fortify on Demand portal.                                            #
+# Template de Github Actions - Stack Completa de AppSec
+# Elaboração:
+# Emerson Xavier  - emerson.xavier@keeggo.com
+# Michel Santana - michel.santana@keeggo.com
+#
+# Stack de Ferramentas de App Sec:
+# - Build da Aplicação Java
+# - Sonarqube - Analise de QA do Código
+# - Dependency Track - Analise de SCA (Componente de Terceiros)
+# - Debricked - Analise de SCA (Componente de Terceiros)
+# - Fortify SAST - Analise de Segurança de Código
+# - Moob.IA - Security IA SmartFix
+#
+#
 ################################################################################################################################################
 
-name: Build + Sonar + Dependency Track + Fortify SAST
+name: Build + Sonar + Dependency Track + Debricked + Fortify SAST + Moob.Ai
 
+# Gatilho de Disparo
 on: [push]
-
+# Steps
 jobs:
-  Fortify-AST-Scan:
+  App-Sec-Stack:
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -34,7 +39,7 @@ jobs:
         with:
           java-version: 17
           distribution: 'temurin'
-      # Sonar
+      # Sonarqube
       - name: Cache SonarQube packages
         uses: actions/cache@v1
         with:
@@ -52,7 +57,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=IWA-Java -Dsonar.projectName='IWA-Java'
-        # DT Upload SBOM
+        # Dependency Track - Upload SBOM
       - uses: DependencyTrack/gh-upload-sbom@v3.0.0
         with:
           serverHostname: 'fortify-demo-lab-utils.keeggo.com'
@@ -62,6 +67,28 @@ jobs:
           bomFilename: "./target/bom.xml"
           autoCreate: true
 
+# Setup Tools Fortify
+      - name: Setup Fortify tools
+        uses: fortify/github-action/setup@v1
+        env:
+          SSC_APP: IWA:java
+        with:
+          tool-definitions: https://github.com/fortify/tool-definitions/releases/download/v1/tool-definitions.yaml.zip
+          export-path: true
+          fcli: latest
+          sc-client: skip
+          fod-uploader: skip
+          vuln-exporter: skip
+          bugtracker-utility: skip
+          debricked-cli: latest
+      - name: FCLI Version
+        run: fcli -V
+      - name: Run Scan Debricked
+        run: debricked scan -t ${{ secrets.DEBRICKED_TOKEN }} -r $SSC_APP --commit=${{ steps.date.outputs.date }}
+      - name: Gera e Envia SBOM pelo debricked e Importa os Resultados no SSC  
+        run: fcli ssc artifact import-debricked -t ${{ secrets.DEBRICKED_TOKEN }} --av=$SSC_APP -r $SSC_APP --branch=$null
+
+    
       # Perform Fortify on Demand SAST + SCA scan and import SAST results into GitHub code scanning alerts
       - name: Run ScanCentral SAST Scan
         uses: fortify/github-action@v1
@@ -82,13 +109,13 @@ jobs:
           # EXTRA_PACKAGE_OPTS: -bv myCustomPom.xml        # Extra 'scancentral package' options
           DO_WAIT: true                                  # Wait for scan completion, implied if 'DO_EXPORT: true'
           # DO_EXPORT: true                                # Export SAST results to GitHub code scanning dashboard
-          # Falta o FPR
+
           #Moob Retreive FPR
-      - name: Run Mobb on the findings and get fixes
-        if: always()
-        uses: mobb-dev/action/review@v1.1
-        with:
-          report-file: "scandata.fpr"
-          api-key: ${{ secrets.MOBB_API_TOKEN }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          scanner: fortify
+#      - name: Run Mobb on the findings and get fixes
+#        if: always()
+#        uses: mobb-dev/action/review@v1.1
+#        with:
+#          report-file: "scandata.fpr"
+#          api-key: ${{ secrets.MOBB_API_TOKEN }}
+#          github-token: ${{ secrets.GITHUB_TOKEN }}
+#          scanner: fortify
