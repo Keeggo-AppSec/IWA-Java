@@ -105,17 +105,16 @@ jobs:
         run:  |
           fcli ssc session login --url ${{secrets.SSC_URL}} --ci-token ${{secrets.SSC_TOKEN}}
           fcli ssc artifact import-debricked -t ${{ secrets.DEBRICKED_TOKEN }} --av=IWA:java -r=IWA:java --branch=$GITHUB_REF_NAME
-      - name: Preparação e Envio Fortify  
+      - name: Preparação do Pacote Fortify  
+        run: scancentral package --build-tool none -o APP.zip
+      - name: Envio Fortify  
         run:  |
-          scancentral package --build-tool none -o APP.zip
           fcli sc-sast session login --client-auth-token=$SC_SAST_TOKEN --ssc-url=$SSC_URL --ssc-ci-token=$SSC_TOKEN
           fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.2 --publish-to $SSC_APPVERSION --ssc-url $SSC_URL --ssc-ci-token $SSC_TOKEN --store job:jobToken    
       - name: Espera Scan Fortify Acabar  
-        run:  |
-          fcli sc-sast scan wait-for --any-ssc-state PROCESS_COMPLETE --timeout 2h ::job::jobToken --store sscArtifactId
+        run: fcli sc-sast scan wait-for --any-ssc-state PROCESS_COMPLETE --timeout 2h ::job::jobToken --store sscArtifactId
       - name: Recuperação do Ultimo Artefacto Scaneado
-        run:  |
-          fcli ssc artifact download ::sscArtifactId -f=app.fpr
+        run: fcli ssc artifact download ::sscArtifactId -f=app.fpr
       # Moob.AI
       - name: Run Mobb on the findings and get fixes
         if: always()
