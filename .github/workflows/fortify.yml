@@ -92,7 +92,7 @@ jobs:
           debricked-cli: latest
 
       - name: Java Version
-        run: java -v
+        run: java -version
       - name: FCLI Version
         run: fcli -V
       - name: Debricked CLI Version
