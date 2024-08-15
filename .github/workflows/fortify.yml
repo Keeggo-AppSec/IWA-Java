@@ -32,7 +32,14 @@ jobs:
       # Check out source code
       - name: Check Out Source Code
         uses: actions/checkout@v4
-
+        
+      # Java
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+          
       # Sonarqube
       - name: Cache SonarQube packages
         uses: actions/cache@v1
@@ -83,12 +90,7 @@ jobs:
           vuln-exporter: skip
           bugtracker-utility: skip
           debricked-cli: latest
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          java-version: 17
-          distribution: 'temurin'
-          
+
       - name: Java Version
         run: java -v
       - name: FCLI Version
