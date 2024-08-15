@@ -80,5 +80,15 @@ jobs:
           # TOOL_DEFINITIONS: https://ftfy.mycompany.com/tool-definitions/v1/tool-definitions.yaml.zip
           # SSC_APPVERSION: MyApp:MyVersion                # SSC application version, default: <org>/<repo>:<branch>
           # EXTRA_PACKAGE_OPTS: -bv myCustomPom.xml        # Extra 'scancentral package' options
-          # DO_WAIT: true                                  # Wait for scan completion, implied if 'DO_EXPORT: true'
+          DO_WAIT: true                                  # Wait for scan completion, implied if 'DO_EXPORT: true'
           # DO_EXPORT: true                                # Export SAST results to GitHub code scanning dashboard
+          # Falta o FPR
+          #Moob Retreive FPR
+      - name: Run Mobb on the findings and get fixes
+        if: always()
+        uses: mobb-dev/action/review@v1.1
+        with:
+          report-file: "scandata.fpr"
+          api-key: ${{ secrets.MOBB_API_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          scanner: fortify
