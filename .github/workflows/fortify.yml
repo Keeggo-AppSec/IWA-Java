@@ -87,8 +87,11 @@ jobs:
         run: debricked -v
       - name: Debricked Scan
         run: debricked scan -t ${{ secrets.DEBRICKED_TOKEN }} -r $SSC_APP --commit=${{ steps.date.outputs.date }}
+
       - name: Importa os Resultados Debricked no SSC  
-        run: fcli ssc artifact import-debricked -t ${{ secrets.DEBRICKED_TOKEN }} --av=$SSC_APP -r=$SSC_APP --branch= $null
+        run:  |
+          fcli ssc session login --url ${{secrets.SSC_URL}} --ci-token ${{secrets.SSC_TOKEN}}
+          fcli ssc artifact import-debricked -t ${{ secrets.DEBRICKED_TOKEN }} --av=$SSC_APP -r=$SSC_APP --branch= $null
 
     
       # Perform Fortify on Demand SAST + SCA scan and import SAST results into GitHub code scanning alerts
