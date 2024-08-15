@@ -71,7 +71,8 @@ jobs:
       - name: Install Debricked and FCLI
         uses: fortify/github-action/setup@v1
         env:
-          SSC_APP: IWA:java
+          SSC_APP: IWA
+          APPV: java
         with:
           tool-definitions: https://github.com/fortify/tool-definitions/releases/download/v1/tool-definitions.yaml.zip
           export-path: true
@@ -91,7 +92,7 @@ jobs:
       - name: Importa os Resultados Debricked no SSC  
         run:  |
           fcli ssc session login --url ${{secrets.SSC_URL}} --ci-token ${{secrets.SSC_TOKEN}}
-          fcli ssc artifact import-debricked -t ${{ secrets.DEBRICKED_TOKEN }} --av=$SSC_APP -r=$SSC_APP --branch= $null
+          fcli ssc artifact import-debricked -t ${{ secrets.DEBRICKED_TOKEN }} --av=$SSC_APP:$APPV -r=$SSC_APP --branch= $null
 
     
       # Perform Fortify on Demand SAST + SCA scan and import SAST results into GitHub code scanning alerts
