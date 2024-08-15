@@ -66,8 +66,8 @@ jobs:
           projectVersion: 'java'
           bomFilename: "./target/bom.xml"
           autoCreate: true
-      - name: Print ENV
-        run: env
+#      - name: Print ENV
+#        run: env
 # Setup Tools Fortify
       - name: Install Debricked and FCLI
         uses: fortify/github-action/setup@v1
@@ -85,14 +85,13 @@ jobs:
       - name: Debricked CLI Version
         run: debricked -v
       - name: Debricked Scan
-        run: debricked scan -t ${{ secrets.DEBRICKED_TOKEN }} -r=IWA:java --commit=${{ steps.date.outputs.date }}
+        run: debricked scan -t ${{ secrets.DEBRICKED_TOKEN }} -r=IWA:java --commit=${{ GITHUB_RUN_ID }}
 
       - name: Importa os Resultados Debricked no SSC  
         run:  |
           fcli ssc session login --url ${{secrets.SSC_URL}} --ci-token ${{secrets.SSC_TOKEN}}
-          fcli ssc artifact import-debricked -t ${{ secrets.DEBRICKED_TOKEN }} --av=IWA:java -r=$SSC_APP --branch= $null
-
-    
+          fcli ssc artifact import-debricked -t ${{ secrets.DEBRICKED_TOKEN }} --av=IWA:java -r=IWA:java --branch=${{ GITHUB_REF_NAME }}
+   
       # Perform Fortify on Demand SAST + SCA scan and import SAST results into GitHub code scanning alerts
       - name: Run ScanCentral SAST Scan
         uses: fortify/github-action@v1
