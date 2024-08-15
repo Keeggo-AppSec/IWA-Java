@@ -85,7 +85,7 @@ jobs:
           tool-definitions: https://github.com/fortify/tool-definitions/releases/download/v1/tool-definitions.yaml.zip
           export-path: true
           fcli: latest
-          sc-client: latest
+          sc-client: 23.2.0
           fod-uploader: skip
           vuln-exporter: skip
           bugtracker-utility: skip
@@ -99,12 +99,7 @@ jobs:
         run: debricked -v
       - name: Debricked Scan
         run: debricked scan -t ${{ secrets.DEBRICKED_TOKEN }} -r=IWA:java --commit=$GITHUB_RUN_ID
-        # Java 11
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          java-version: 11
-          distribution: 'temurin'
+
       - name: Preparação e Envio Fortify  
         run:  |
           scancentral package --build-tool none -o APP.zip
