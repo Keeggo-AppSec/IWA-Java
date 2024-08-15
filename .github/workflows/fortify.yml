@@ -21,7 +21,7 @@ name: Build + Sonar + Dependency Track + Debricked + Fortify SAST + Moob.Ai
 on: [push]
 # Steps
 jobs:
-  Build:
+  AppSec-Stack:
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -39,14 +39,7 @@ jobs:
         with:
           java-version: 17
           distribution: 'temurin'
-  Sonar:
-      needs: Build
-      runs-on: ubuntu-latest
-      permissions:
-        actions: read
-        contents: read
-        security-events: write
-      steps:
+          
       # Sonarqube
       - name: Cache SonarQube packages
         uses: actions/cache@v1
@@ -54,6 +47,7 @@ jobs:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
+          
        # Mvn    
       - name: Cache Maven packages
         uses: actions/cache@v1
@@ -61,20 +55,14 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
+          
        # Build   
       - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=IWA-Java -Dsonar.projectName='IWA-Java'
-  Dependency-Track:
-      needs: Sonar
-      runs-on: ubuntu-latest
-      permissions:
-        actions: read
-        contents: read
-        security-events: write
-      steps:        
+   
         # Dependency Track - Upload SBOM
       - uses: DependencyTrack/gh-upload-sbom@v3.0.0
         with:
@@ -84,14 +72,7 @@ jobs:
           projectVersion: 'java'
           bomFilename: "./target/bom.xml"
           autoCreate: true
-  Debricked-SAST:
-      needs: Build
-      runs-on: ubuntu-latest
-      permissions:
-        actions: read
-        contents: read
-        security-events: write
-      steps:
+        # Fortify Setup
       - name: Install Debricked and FCLI
         uses: fortify/github-action/setup@v1
         env:
@@ -135,14 +116,7 @@ jobs:
       - name: Recuperação do Ultimo Artefacto Scaneado
         run:  |
           fcli ssc artifact download ::sscArtifactId -f=app.fpr
-  MoobAi:
-      needs: Debricked-SAST
-      runs-on: ubuntu-latest
-      permissions:
-        actions: read
-        contents: read
-        security-events: write
-      steps:
+      # Moob.AI
       - name: Run Mobb on the findings and get fixes
         if: always()
         uses: mobb-dev/action/review@v1.1
