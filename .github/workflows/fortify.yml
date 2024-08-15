@@ -40,6 +40,7 @@ jobs:
           java-version: 17
           distribution: 'temurin'
   Sonar:
+      needs: Build
       runs-on: ubuntu-latest
       permissions:
         actions: read
@@ -67,6 +68,7 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=IWA-Java -Dsonar.projectName='IWA-Java'
   Dependency-Track:
+      needs: Sonar
       runs-on: ubuntu-latest
       permissions:
         actions: read
@@ -83,6 +85,7 @@ jobs:
           bomFilename: "./target/bom.xml"
           autoCreate: true
   Debricked-SAST:
+      needs: Build
       runs-on: ubuntu-latest
       permissions:
         actions: read
@@ -132,6 +135,14 @@ jobs:
       - name: Recuperação do Ultimo Artefacto Scaneado
         run:  |
           fcli ssc artifact download ::sscArtifactId -f=app.fpr
+  MoobAi:
+      needs: Debricked-SAST
+      runs-on: ubuntu-latest
+      permissions:
+        actions: read
+        contents: read
+        security-events: write
+      steps:
       - name: Run Mobb on the findings and get fixes
         if: always()
         uses: mobb-dev/action/review@v1.1
