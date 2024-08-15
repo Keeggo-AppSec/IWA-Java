@@ -76,9 +76,9 @@ jobs:
       - name: Install Debricked and FCLI
         uses: fortify/github-action/setup@v1
         env:
-          SSC_URL: ${{secrets.SSC_URL}}
-          SSC_TOKEN: ${{secrets.SSC_TOKEN}}
-          SC_SAST_TOKEN: ${{secrets.CLIENT_AUTH_TOKEN}}
+          SSC_URL: ${{ secrets.SSC_URL }}
+          SSC_TOKEN: ${{ secrets.SSC_TOKEN }}
+          SC_SAST_TOKEN: ${{ secrets.CLIENT_AUTH_TOKEN }}
           # EXTRA_SC_SAST_LOGIN_OPTS: --socket-timeout=60s
           SSC_APPVERSION: IWA:java
           # EXTRA_PACKAGE_OPTS: -bf custom-pom.xml
@@ -100,8 +100,8 @@ jobs:
           debricked -v
       - name: Login Fortify SSC/SC-SAST Controller  
         run: |
-          fcli ssc session login --url ${{secrets.SSC_URL}} --ci-token ${{secrets.SSC_TOKEN}}
-          fcli sc-sast session login --client-auth-token=${{secrets.CLIENT_AUTH_TOKEN}} --ssc-url=${{secrets.SSC_URL}} --ssc-ci-token=${{secrets.SSC_TOKEN}}      
+          fcli ssc session login --url ${{ secrets.SSC_URL }} --ci-token ${{ secrets.SSC_TOKEN }}
+          fcli sc-sast session login --client-auth-token=${{ secrets.CLIENT_AUTH_TOKEN }} --ssc-url=${{ secrets.SSC_URL }} --ssc-ci-token=${{ secrets.SSC_TOKEN }}      
       - name: Debricked Scan
         run: debricked scan -t ${{ secrets.DEBRICKED_TOKEN }} -r=IWA:java --commit=$GITHUB_RUN_ID
       - name: Importa os Resultados Debricked no SSC  
