@@ -39,6 +39,29 @@ jobs:
         with:
           java-version: 17
           distribution: 'temurin'
+
+        # Fortify Setup
+      - name: Install Debricked and FCLI
+        uses: fortify/github-action/setup@v1
+        with:
+          tool-definitions: https://github.com/fortify/tool-definitions/releases/download/v1/tool-definitions.yaml.zip
+          export-path: true
+          fcli: latest
+          sc-client: 23.2.1
+          fod-uploader: skip
+          vuln-exporter: skip
+          bugtracker-utility: skip
+          debricked-cli: latest
+
+      - name: Utilitários Instalados
+        run: |
+          java -version
+          fcli -V
+          debricked -v
+      - name: Login Fortify SSC/SC-SAST Controller  
+        run: |
+          fcli ssc session login --url=${{ secrets.SSC_URL }} --ci-token=${{ secrets.SSC_TOKEN }}
+          fcli sc-sast session login --client-auth-token=${{ secrets.CLIENT_AUTH_TOKEN }} --ssc-url=${{ secrets.SSC_URL }} --ssc-ci-token=${{ secrets.SSC_TOKEN }}
           
       # Sonarqube
       - name: Cache SonarQube packages
@@ -62,7 +85,12 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=IWA-Java -Dsonar.projectName='IWA-Java'
-   
+        
+      - name: Preparação do Pacote Fortify  
+        run: scancentral package --build-tool none -o APP.zip
+      - name: Envio Fortify  
+        run: fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.2 --publish-to IWA:java --ssc-ci-token=${{ secrets.SSC_TOKEN }} --store job:jobToken
+        
         # Dependency Track - Upload SBOM
       - uses: DependencyTrack/gh-upload-sbom@v3.0.0
         with:
@@ -72,44 +100,12 @@ jobs:
           projectVersion: 'java'
           bomFilename: "./target/bom.xml"
           autoCreate: true
-        # Fortify Setup
-      - name: Install Debricked and FCLI
-        uses: fortify/github-action/setup@v1
-        env:
-#          SSC_URL: ${{ secrets.SSC_URL }}
-#          SSC_TOKEN: ${{ secrets.SSC_TOKEN }}
-#          SC_SAST_TOKEN: ${{ secrets.CLIENT_AUTH_TOKEN }}
-          # EXTRA_SC_SAST_LOGIN_OPTS: --socket-timeout=60s
-          SSC_APPVERSION: IWA:java
-          # EXTRA_PACKAGE_OPTS: -bf custom-pom.xml
-          SC_SAST_SENSOR_VERSION: 24.2
-        with:
-          tool-definitions: https://github.com/fortify/tool-definitions/releases/download/v1/tool-definitions.yaml.zip
-          export-path: true
-          fcli: latest
-          sc-client: 23.2.1
-          fod-uploader: skip
-          vuln-exporter: skip
-          bugtracker-utility: skip
-          debricked-cli: latest
 
-      - name: Util Versions
-        run: |
-          java -version
-          fcli -V
-          debricked -v
-      - name: Login Fortify SSC/SC-SAST Controller  
-        run: |
-          fcli ssc session login --url=${{ secrets.SSC_URL }} --ci-token=${{ secrets.SSC_TOKEN }}
-          fcli sc-sast session login --client-auth-token=${{ secrets.CLIENT_AUTH_TOKEN }} --ssc-url=${{ secrets.SSC_URL }} --ssc-ci-token=${{ secrets.SSC_TOKEN }}    
       - name: Debricked Scan
         run: debricked scan -t ${{ secrets.DEBRICKED_TOKEN }} -r=IWA:java --commit=$GITHUB_RUN_ID
       - name: Importa os Resultados Debricked no SSC  
         run: fcli ssc artifact import-debricked -t ${{ secrets.DEBRICKED_TOKEN }} --av=IWA:java -r=IWA:java --branch=$GITHUB_REF_NAME
-      - name: Preparação do Pacote Fortify  
-        run: scancentral package --build-tool none -o APP.zip
-      - name: Envio Fortify  
-        run: fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.2 --publish-to IWA:java --ssc-ci-token=${{ secrets.SSC_TOKEN }} --store job:jobToken    
+    
       - name: Espera Scan Fortify Acabar  
         run: fcli sc-sast scan wait-for --any-ssc-state PROCESS_COMPLETE --timeout 2h ::job::jobToken --store sscArtifactId
       - name: Recuperação do Ultimo Artefacto Scaneado
