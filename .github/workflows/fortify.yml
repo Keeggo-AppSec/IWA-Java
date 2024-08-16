@@ -49,7 +49,7 @@ jobs:
           tool-definitions: https://github.com/fortify/tool-definitions/releases/download/v1/tool-definitions.yaml.zip
           export-path: true
           fcli: latest
-          sc-client: 23.2.1
+          sc-client: latest
           fod-uploader: skip
           vuln-exporter: skip
           bugtracker-utility: skip
