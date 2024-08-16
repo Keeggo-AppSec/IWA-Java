@@ -5,6 +5,7 @@
 # Michel Santana - michel.santana@keeggo.com
 #
 # Stack de Ferramentas de App Sec:
+# - Checkout do Código
 # - Build da Aplicação Java
 # - Sonarqube - Analise de QA do Código
 # - Dependency Track - Analise de SCA (Componente de Terceiros)
@@ -86,11 +87,8 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: |
-          mvn clean package
-          mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=IWA-Java -Dsonar.projectName='IWA-Java'
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=IWA-Java -Dsonar.projectName='IWA-Java'
 
-        
       - name: Preparação do Pacote Fortify  
         run: scancentral package --build-tool none -o APP.zip
       - name: Envio Fortify  
@@ -107,7 +105,7 @@ jobs:
           autoCreate: true
 
       - name: Debricked Scan
-        run: debricked scan -t ${{ secrets.DEBRICKED_TOKEN }} -r=${{ env.App-Version  }} --commit=$GITHUB_RUN_ID
+        run: debricked scan -t ${{ secrets.DEBRICKED_TOKEN }} -r=${{ env.App-Version  }} --commit=${{ env.GITHUB_RUN_ID }}
       - name: Importa os Resultados Debricked no SSC  
         run: fcli ssc artifact import-debricked -t ${{ secrets.DEBRICKED_TOKEN }} --av=${{ env.App-Version  }} -r=${{ env.App-Version  }} --branch=$GITHUB_REF_NAME
     
