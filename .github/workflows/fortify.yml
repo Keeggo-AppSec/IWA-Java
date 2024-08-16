@@ -86,7 +86,10 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=IWA-Java -Dsonar.projectName='IWA-Java'
+        run: |
+          mvn clean package
+          mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=IWA-Java -Dsonar.projectName='IWA-Java'
+
         
       - name: Preparação do Pacote Fortify  
         run: scancentral package --build-tool none -o APP.zip
