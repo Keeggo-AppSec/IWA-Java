@@ -91,7 +91,7 @@ jobs:
 
       - name: Preparação do Pacote Fortify  
         run: scancentral package --build-tool none -o APP.zip
-      - name: Envio Fortify  
+      # - name: Envio Fortify  
         # run: fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.2 --publish-to ${{ env.App-Version  }} --ssc-ci-token=${{ secrets.SSC_TOKEN }} --store job:jobToken
         
         # Dependency Track - Upload SBOM
@@ -109,7 +109,7 @@ jobs:
       - name: Importa os Resultados Debricked no SSC  
         run: fcli ssc artifact import-debricked -t ${{ secrets.DEBRICKED_TOKEN }} --av=${{ env.App-Version  }} -r=${{ env.App-Version  }} --branch=$GITHUB_REF_NAME
     
-      - name: Espera Scan Fortify Acabar  
+      # - name: Espera Scan Fortify Acabar  
         # run: fcli sc-sast scan wait-for --any-ssc-state PROCESS_COMPLETE --timeout 2h ::job::jobToken --store sscArtifactId
       - name: Recuperação do Ultimo Artefacto Scaneado
         # run: fcli ssc artifact download ::sscArtifactId -f=app.fpr
