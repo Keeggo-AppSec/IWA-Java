@@ -113,7 +113,8 @@ jobs:
         run: fcli sc-sast scan wait-for --any-ssc-state PROCESS_COMPLETE --timeout 2h ::job::jobToken --store sscArtifactId
       - name: Recuperação do Ultimo Artefacto Scaneado
         run: fcli ssc artifact download ::sscArtifactId -f=app.fpr
-      # Moob.AI
+        
+      # Mobb.AI
       - name: Run Mobb on the findings and get fixes
         if: always()
         uses: mobb-dev/action/review@v1.1
