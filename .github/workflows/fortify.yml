@@ -130,4 +130,5 @@ jobs:
           report-file: "app.fpr"
           api-key: ${{ secrets.MOBB_API_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          scanner: fortify
+          mobb-project-name: "Keeggo Projects"
+          # scanner: fortify
