@@ -92,7 +92,7 @@ jobs:
       - name: Preparação do Pacote Fortify  
         run: scancentral package --build-tool none -o APP.zip
       - name: Envio Fortify  
-        run: fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.2 --publish-to ${{ env.App-Version  }} --ssc-ci-token=${{ secrets.SSC_TOKEN }} --store job:jobToken
+        # run: fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.2 --publish-to ${{ env.App-Version  }} --ssc-ci-token=${{ secrets.SSC_TOKEN }} --store job:jobToken
         
         # Dependency Track - Upload SBOM
       - uses: DependencyTrack/gh-upload-sbom@v3.0.0
@@ -110,9 +110,10 @@ jobs:
         run: fcli ssc artifact import-debricked -t ${{ secrets.DEBRICKED_TOKEN }} --av=${{ env.App-Version  }} -r=${{ env.App-Version  }} --branch=$GITHUB_REF_NAME
     
       - name: Espera Scan Fortify Acabar  
-        run: fcli sc-sast scan wait-for --any-ssc-state PROCESS_COMPLETE --timeout 2h ::job::jobToken --store sscArtifactId
+        # run: fcli sc-sast scan wait-for --any-ssc-state PROCESS_COMPLETE --timeout 2h ::job::jobToken --store sscArtifactId
       - name: Recuperação do Ultimo Artefacto Scaneado
-        run: fcli ssc artifact download ::sscArtifactId -f=app.fpr
+        # run: fcli ssc artifact download ::sscArtifactId -f=app.fpr
+        run: fcli ssc appversion download-state --include-sources --file=app.fpr ${{ env.App-Version  }}
         
       # Mobb.AI
       - name: Run Mobb on the findings and get fixes
