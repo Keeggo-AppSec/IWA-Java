@@ -1,22 +1,22 @@
 ################################################################################################################################################
 # Template de Github Actions - Stack Completa de AppSec
 # Elaboração:
-# Emerson Xavier  - emerson.xavier@keeggo.com
+# Emerson Xavier - emerson.xavier@keeggo.com
 # Michel Santana - michel.santana@keeggo.com
 #
 # Stack de Ferramentas de App Sec:
 # - Checkout do Código
 # - Build da Aplicação Java
-# - Sonarqube - Analise de QA do Código
-# - Dependency Track - Analise de SCA (Componente de Terceiros)
-# - Debricked - Analise de SCA (Componente de Terceiros)
-# - Fortify SAST - Analise de Segurança de Código
-# - Moob.IA - Security IA SmartFix
+# - SonarQube - Análise de Qualidade do Código
+# - OWASP Dependency Track - Análise de Componentes de Terceiros
+# - OpenText Debricked - Análise de Componentes de Terceiros
+# - OpenText Fortify Static Code Analyzer - Análise Estática
+# - Mobb Fixer - Correção Automatizada de Código
 #
 #
 ################################################################################################################################################
 
-name: Sonar + Dependency Track + Debricked + Fortify SAST + Moob.Ai
+name: SonarQube + Dependency Track + Debricked + Fortify + Mobb
 
 # Gatilho de Disparo
 on: [push]
@@ -114,8 +114,15 @@ jobs:
       - name: Recuperação do Ultimo Artefacto Scaneado
         # run: fcli ssc artifact download ::sscArtifactId -f=app.fpr
         run: fcli ssc appversion download-state --include-sources --file=app.fpr ${{ env.App-Version  }}
+
+      - name: Arquivar FPR
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: fpr
+          path: app.fpr
         
-      # Mobb.AI
+      # Mobb Fixer
       - name: Run Mobb on the findings and get fixes
         if: always()
         uses: mobb-dev/action/review@v1.1
