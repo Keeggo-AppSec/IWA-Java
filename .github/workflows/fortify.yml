@@ -91,8 +91,8 @@ jobs:
 
       - name: Preparação do Pacote Fortify  
         run: scancentral package --build-tool none -o APP.zip
-      # - name: Envio Fortify  
-        # run: fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.2 --publish-to ${{ env.App-Version  }} --ssc-ci-token=${{ secrets.SSC_TOKEN }} --store job:jobToken
+      - name: Envio Fortify  
+        run: fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.2 --publish-to ${{ env.App-Version  }} --ssc-ci-token=${{ secrets.SSC_TOKEN }} --store job:jobToken
         
         # Dependency Track - Upload SBOM
       - uses: DependencyTrack/gh-upload-sbom@v3.0.0
@@ -109,11 +109,20 @@ jobs:
       - name: Importa os Resultados Debricked no SSC  
         run: fcli ssc artifact import-debricked -t ${{ secrets.DEBRICKED_TOKEN }} --av=${{ env.App-Version  }} -r=${{ env.App-Version  }} --branch=$GITHUB_REF_NAME
     
-      # - name: Espera Scan Fortify Acabar  
-        # run: fcli sc-sast scan wait-for --any-ssc-state PROCESS_COMPLETE --timeout 2h ::job::jobToken --store sscArtifactId
-      - name: Recuperação do Ultimo Artefacto Scaneado
+      - name: Espera Scan Fortify Acabar  
+        run: fcli sc-sast scan wait-for --any-ssc-state PROCESS_COMPLETE --timeout 2h ::job::jobToken --store sscArtifactId
+      
+      # Para Demo
+      #- name: Recuperação do Ultimo Artefacto Scaneado
         # run: fcli ssc artifact download ::sscArtifactId -f=app.fpr
-        run: fcli ssc appversion download-state --include-sources --file=app.fpr ${{ env.App-Version  }}
+        # run: fcli ssc appversion download-state --include-sources --file=app.fpr ${{ env.App-Version  }}
+
+      - name: Consulta ID do Ultimo Artefacto
+        run: fcli ssc artifact list --appversion ${{ env.App-Version  }} --query "['scanTypes'].contains('SCA')" --output 'expr={id}\n' > out.txt
+      - name: Recuperação do Ultimo Artefacto Scaneado
+        run: |
+         $ARTIFACTID = head -1 out.txt
+         fcli ssc artifact download "$ARTIFACTID" -f='app.fpr'
 
       - name: Arquivar FPR
         if: always()
