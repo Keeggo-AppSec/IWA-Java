@@ -56,6 +56,28 @@ stages:
           SC_SAST_SENSOR_VERSION: 24.2
       steps:
       - script: |
+      
+          java -version
+          fcli -V
+          debricked -v
+          # Loga no Fortify SSC e SC-SAST Controller
+          fcli ssc session login --url=${{ secrets.SSC_URL }} --ci-token=${{ secrets.SSC_TOKEN }}
+          fcli sc-sast session login --client-auth-token=${{ secrets.CLIENT_AUTH_TOKEN }} --ssc-url=${{ secrets.SSC_URL }} --ssc-ci-token=${{ secrets.SSC_TOKEN }}
+          # Empacota a Aplicação para o Scancentral
+          scancentral package --build-tool none -o APP.zip
+          # Envia o Artefato para o Scancentral Controller
+          fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.2 --publish-to ${{ env.App-Version  }} --ssc-ci-token=${{ secrets.SSC_TOKEN }} --store job:jobToken
+          # Debricked Scan
+          debricked scan -t ${{ secrets.DEBRICKED_TOKEN }} -r=${{ env.App-Version  }} --commit=${{ env.GITHUB_RUN_ID }}
+          # Importa os Resultados Debricked no SSC  
+          fcli ssc artifact import-debricked -t ${{ secrets.DEBRICKED_TOKEN }} --av=${{ env.App-Version  }} -r=${{ env.App-Version  }} --branch=$GITHUB_REF_NAME
+          # Espera Scan Fortify Acabar  
+          fcli sc-sast scan wait-for --any-ssc-state PROCESS_COMPLETE --timeout 2h ::job::jobToken --store sscArtifactId
+          # Consulta ID do Ultimo Artefacto
+          fcli ssc artifact list --appversion ${{ env.App-Version  }} --query "['scanTypes'].contains('SCA')" --output 'expr={id}\n' > out.txt
+          # Recuperação do Ultimo Artefacto Scaneado
+          # run: fcli ssc artifact download "$(head -1 out.txt)" -f='app.fpr'
+
           echo Setting connection with Fortify Platform
           echo $FORTIFY_SSC_IP fortify.cyberxdemo.com >> /etc/hosts
           #Use --insecure switch if the SSL certificate is self generated.
@@ -70,6 +92,7 @@ stages:
 
           echo Terminating connection with Fortify Platform
           fcli sc-sast session logout
-          fcli ssc session logout  
+          fcli ssc session logout
+            
         displayName: Scan Central Scan
         continueOnError: false
