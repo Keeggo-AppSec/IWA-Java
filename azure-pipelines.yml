@@ -19,39 +19,16 @@ trigger:
 stages:
 - stage: Build
   jobs:
-    - job: Prep
-      displayName: Preparação
-      pool: Default
-      steps:
-
-  # Java tool installer v0
-# Acquire a specific version of Java from a user-supplied Azure blob or the tool cache and sets JAVA_HOME.
-      - task: JavaToolInstaller@0
-        inputs:
-          versionSpec: '17' # string. Required. JDK version. Default: 8.
-          jdkArchitectureOption: x64 
-          jdkSourceOption: 'LocalDirectory'
-          jdkFile: 'D:\Tools\openjdk-17.0.2_windows-x64_bin.zip'
-          #azureResourceManagerEndpoint: # string. Required when jdkSourceOption == AzureStorage. Azure subscription. 
-          #azureStorageAccountName: # string. Required when jdkSourceOption == AzureStorage. Storage account name. 
-          #azureContainerName: # string. Required when jdkSourceOption == AzureStorage. Container name. 
-          #azureCommonVirtualFile: # string. Required when jdkSourceOption == AzureStorage. Common virtual path. 
-          #jdkDestinationDirectory: # string. Required when jdkSourceOption != PreInstalled. Destination directory. 
-          #azureResourceGroupName: # string. Optional. Use when jdkSourceOption == AzureStorage. Resource Group name. 
-          #cleanDestinationDirectory: true # boolean. Optional. Use when jdkSourceOption != PreInstalled. Clean destination directory. Default: true.
-          #createExtractDirectory: true # boolean. Optional. Use when jdkSourceOption != PreInstalled. Create directory for extracting. Default: true.
-
     - job: Build
       displayName: Building IWA Project
-      dependsOn:
-       - Prep
+ 
       pool: Default
       steps:
       - task: Maven@3
         inputs:
           mavenPomFile: 'pom.xml'
           mavenOptions: '-Xmx3072m'
-          javaHomeOption: 'JDKVersion'
+          javaHomeOption: 'JAVA_HOME'
           jdkVersionOption: '1.17'
           jdkArchitectureOption: 'x64'
           publishJUnitResults: true
