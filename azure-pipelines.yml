@@ -28,14 +28,14 @@ stages:
         inputs:
           versionSpec: '17'
           jdkArchitectureOption: 'x64'
-          jdkSourceOption: 'PreInstalled'
+          jdkSourceOption: 'LocalDirectory'
+          jdkDestinationDirectory: 'C:\Program Files\Eclipse Adoptium\jdk-17.0.12.7-hotspot\'
       - task: Maven@3
         inputs:
           mavenPomFile: 'pom.xml'
           mavenOptions: '-Xmx3072m'
           javaHomeOption: 'JDKVersion'
           jdkVersionOption: '1.17'
-          jdkDirectory: 'C:\Program Files\Eclipse Adoptium\jdk-17.0.12.7-hotspot\'
           jdkArchitectureOption: 'x64'
           publishJUnitResults: true
           testResultsFiles: '**/surefire-reports/TEST-*.xml'
