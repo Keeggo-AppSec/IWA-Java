@@ -29,7 +29,7 @@ stages:
           versionSpec: '17'
           jdkArchitectureOption: 'x64'
           jdkSourceOption: 'LocalDirectory'
-          jdkDestinationDirectory: 'C:\Program Files\Eclipse Adoptium\jdk-17.0.12.7-hotspot\'
+          jdkDestinationDirectory: 'D:\Tools\openjdk-17.0.2_windows-x64_bin\jdk-17.0.2\'
       - task: Maven@3
         inputs:
           mavenPomFile: 'pom.xml'
