@@ -64,7 +64,7 @@ stages:
           fcli ssc session login --url=${{ secrets.SSC_URL }} --ci-token=${{ secrets.SSC_TOKEN }}
           fcli sc-sast session login --client-auth-token=${{ secrets.CLIENT_AUTH_TOKEN }} --ssc-url=${{ secrets.SSC_URL }} --ssc-ci-token=${{ secrets.SSC_TOKEN }}
           # Empacota a Aplicação para o Scancentral
-          scancentral package --build-tool none -o APP.zip
+          scancentral package -o APP.zip
           # Envia o Artefato para o Scancentral Controller
           fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.2 --publish-to ${{ env.App-Version  }} --ssc-ci-token=${{ secrets.SSC_TOKEN }} --store job:jobToken
           # Debricked Scan
