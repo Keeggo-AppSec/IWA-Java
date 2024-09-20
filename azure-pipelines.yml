@@ -21,8 +21,7 @@ stages:
   jobs:
     - job: Build
       displayName: Building IWA Project
-      pool:
-        vmImage: ubuntu-latest
+      pool: Default
       steps:
       - task: Maven@3
         inputs:
@@ -39,8 +38,7 @@ stages:
       displayName: Fortify SAST
       dependsOn:
        - Build
-      pool:
-       vmImage: 'ubuntu-latest'
+      pool: Default
       container:
         image: fortifydocker/fortify-ci-tools:5.4.1-jdk-17
         options: "--add-host=https://fortify-demo-lab.keeggo.com/"
