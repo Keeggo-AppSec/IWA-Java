@@ -24,11 +24,11 @@ stages:
  
       pool: Default
       steps:
-      - task: PowerShell@2
-        displayName: Display the environment variable JAVA_HOME_17_X64 value
-      - script: |
-          echo $env:JAVA_HOME_17_X64
-          echo $env:JAVA_HOME
+      - task: JavaToolInstaller@0
+        inputs:
+          versionSpec: '17'
+          jdkArchitectureOption: 'x64'
+          jdkSourceOption: 'PreInstalled'
       - task: Maven@3
         inputs:
           mavenPomFile: 'pom.xml'
