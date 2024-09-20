@@ -31,7 +31,7 @@ stages:
           jdkSourceOption: 'LocalDirectory'
           jdkFile: 'D:\Tools\jdk-17.0.12.7-hotspot.zip'
           jdkDestinationDirectory: 'D:\Tools\jdk-17.0.12.7-hotspot\'
-      - task: Maven@3
+      - task: Maven@4
         inputs:
           mavenPomFile: 'pom.xml'
           mavenOptions: '-Xmx3072m'
