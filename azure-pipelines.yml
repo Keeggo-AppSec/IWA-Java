@@ -49,7 +49,6 @@ stages:
       pool: Default
       container:
         image: fortifydocker/fortify-ci-tools:5.4.1-jdk-17
-        options: "--add-host=https://fortify-demo-lab.keeggo.com/"
         env:
           FCLI_DEFAULT_SC_SAST_CLIENT_AUTH_TOKEN: $(_FCLI_DEFAULT_SC_SAST_CLIENT_AUTH_TOKEN)
           FCLI_DEFAULT_SSC_CI_TOKEN: $(_FCLI_DEFAULT_SSC_CI_TOKEN)
