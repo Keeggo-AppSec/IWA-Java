@@ -19,7 +19,7 @@
 name: SonarQube + Dependency Track + Debricked + Fortify + Mobb
 
 # Gatilho de Disparo
-on: [push]
+
 # Steps
 jobs:
   AppSec-Stack:
