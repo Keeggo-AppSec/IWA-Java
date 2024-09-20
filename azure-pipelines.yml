@@ -61,15 +61,27 @@ stages:
        - Build
       pool: Default
       steps:
-      - task: FortifyScanCentralSAST@7
+      - task: PowerShell@2
         inputs:
-          scanCentralCtrlUrl: '$(_FCLI_DEFAULT_SCC_URL)'
-          scanCentralClientToken: '$(_FCLI_DEFAULT_SC_SAST_CLIENT_AUTH_TOKEN)'
-          sscUrl: '$(_FCLI_DEFAULT_SSC_URL)'
-          sscCiToken: '$(_FCLI_DEFAULT_SSC_CI_TOKEN)'
-          uploadToSSC: true
-          applicationName: 'IWA'
-          applicationVersion: 'java'
-          buildTool: 'none'
-          block: true
-          outputFile: 'APP.fpr'
+          targetType: 'inline'
+          script: |
+            java -version
+            fcli -V
+            debricked -v
+            Write-Host Loga no Fortify SSC e SC-SAST Controller
+            fcli ssc session login --url=${env:_FCLI_DEFAULT_SSC_URL} --ci-token=${env:_FCLI_DEFAULT_SSC_CI_TOKEN}
+            fcli sc-sast session login --client-auth-token=$(_FCLI_DEFAULT_SC_SAST_CLIENT_AUTH_TOKEN) --ssc-url=${env:_FCLI_DEFAULT_SSC_URL} --ssc-ci-token=${env:_FCLI_DEFAULT_SSC_CI_TOKEN}
+            Write-Host Empacota a Aplicação para o Scancentral
+            scancentral package -o APP.zip
+            Write-Host Envia o Artefato para o Scancentral Controller
+            fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.2 --publish-to ${env:_SSC_APP_VERSION_ID} --ssc-ci-token=${env:_FCLI_DEFAULT_SSC_CI_TOKEN} --store job:jobToken
+            Write-Host Debricked Scan
+            debricked scan -t ${env:_DEBRICKED_TOKEN} -r=${env:_SSC_APP_VERSION_ID} --commit=$(Build.SourceVersion)
+            Write-Host Importa os Resultados Debricked no SSC  
+            fcli ssc artifact import-debricked -t ${env:_DEBRICKED_TOKEN} --av=${env:_SSC_APP_VERSION_ID} -r=${env:_SSC_APP_VERSION_ID} --branch=$(Build.SourceBranchName)
+            Write-Host Espera Scan Fortify Acabar  
+            fcli sc-sast scan wait-for --any-ssc-state PROCESS_COMPLETE --timeout 2h ::job::jobToken --store sscArtifactId
+            Write-Host Consulta ID do Ultimo Artefacto
+            fcli ssc artifact list --appversion ${env:_SSC_APP_VERSION_ID} --query "['scanTypes'].contains('SCA')" --output 'expr={id}\n' > out.txt
+            Write-Host Recuperação do Ultimo Artefacto Scaneado
+            # run: fcli ssc artifact download "$(head -1 out.txt)" -f='app.fpr'
