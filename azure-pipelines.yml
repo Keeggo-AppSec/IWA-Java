@@ -29,8 +29,8 @@ stages:
         inputs:
           versionSpec: '17' # string. Required. JDK version. Default: 8.
           jdkArchitectureOption: x64 
-          jdkSourceOption: 'AzureStorage' # | 'LocalDirectory' | 'PreInstalled'. Required. JDK source. 
-          #jdkFile: # string. Required when jdkSourceOption == LocalDirectory. JDK file. 
+          jdkSourceOption: 'LocalDirectory'
+          jdkFile: 'D:\Tools\openjdk-17.0.2_windows-x64_bin.zip'
           #azureResourceManagerEndpoint: # string. Required when jdkSourceOption == AzureStorage. Azure subscription. 
           #azureStorageAccountName: # string. Required when jdkSourceOption == AzureStorage. Storage account name. 
           #azureContainerName: # string. Required when jdkSourceOption == AzureStorage. Container name. 
