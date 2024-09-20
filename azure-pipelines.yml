@@ -48,8 +48,8 @@ stages:
        - Build
       pool: Default
       container:
-        image: hello-world:latest
-        #image: fortifydocker/fortify-ci-tools:latest-jdk-17
+        #image: hello-world:latest
+        image: fortifydocker/fortify-ci-tools:latest-jdk-17
         env:
           FCLI_DEFAULT_SC_SAST_CLIENT_AUTH_TOKEN: $(_FCLI_DEFAULT_SC_SAST_CLIENT_AUTH_TOKEN)
           FCLI_DEFAULT_SSC_CI_TOKEN: $(_FCLI_DEFAULT_SSC_CI_TOKEN)
@@ -59,7 +59,7 @@ stages:
           SSC_APP_VERSION_ID: $(_SSC_APP_VERSION_ID)
           SC_SAST_SENSOR_VERSION: 24.2
       steps:
-      - script: |
-          echo 'Helll'
+      - powershell: |
+          echo 'Helllo'
         displayName: Scan Central Scan
         continueOnError: true
