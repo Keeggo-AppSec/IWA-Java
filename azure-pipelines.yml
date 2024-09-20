@@ -7,8 +7,6 @@
 # Stack de Ferramentas de App Sec:
 # - Checkout do Código
 # - Build da Aplicação Java
-# - SonarQube - Análise de Qualidade do Código
-# - OWASP Dependency Track - Análise de Componentes de Terceiros
 # - OpenText Debricked - Análise de Componentes de Terceiros
 # - OpenText Fortify Static Code Analyzer - Análise Estática
 # - Mobb Fixer - Correção Automatizada de Código
@@ -56,43 +54,27 @@ stages:
           SC_SAST_SENSOR_VERSION: 24.2
       steps:
       - script: |
-      
           java -version
           fcli -V
           debricked -v
-          # Loga no Fortify SSC e SC-SAST Controller
+          echo "Loga no Fortify SSC e SC-SAST Controller"
           fcli ssc session login --url=${{ secrets.SSC_URL }} --ci-token=${{ secrets.SSC_TOKEN }}
           fcli sc-sast session login --client-auth-token=${{ secrets.CLIENT_AUTH_TOKEN }} --ssc-url=${{ secrets.SSC_URL }} --ssc-ci-token=${{ secrets.SSC_TOKEN }}
-          # Empacota a Aplicação para o Scancentral
+          echo "Empacota a Aplicação para o Scancentral
           scancentral package -o APP.zip
-          # Envia o Artefato para o Scancentral Controller
-          fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.2 --publish-to ${{ env.App-Version  }} --ssc-ci-token=${{ secrets.SSC_TOKEN }} --store job:jobToken
-          # Debricked Scan
-          debricked scan -t ${{ secrets.DEBRICKED_TOKEN }} -r=${{ env.App-Version  }} --commit=${{ env.GITHUB_RUN_ID }}
-          # Importa os Resultados Debricked no SSC  
-          fcli ssc artifact import-debricked -t ${{ secrets.DEBRICKED_TOKEN }} --av=${{ env.App-Version  }} -r=${{ env.App-Version  }} --branch=$GITHUB_REF_NAME
-          # Espera Scan Fortify Acabar  
+          echo "Envia o Artefato para o Scancentral Controller
+          fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.2 --publish-to ${{ $(_SSC_APP_VERSION_ID)  }} --ssc-ci-token=${{ secrets.SSC_TOKEN }} --store job:jobToken
+          echo "Debricked Scan
+          debricked scan -t ${{ secrets.DEBRICKED_TOKEN }} -r=${{ $(_SSC_APP_VERSION_ID)  }} --commit=${{ env.GITHUB_RUN_ID }}
+          echo "Importa os Resultados Debricked no SSC  
+          fcli ssc artifact import-debricked -t ${{ secrets.DEBRICKED_TOKEN }} --av=${{ $(_SSC_APP_VERSION_ID)  }} -r=${{ $(_SSC_APP_VERSION_ID)  }} --branch=$GITHUB_REF_NAME
+          echo "Espera Scan Fortify Acabar  
           fcli sc-sast scan wait-for --any-ssc-state PROCESS_COMPLETE --timeout 2h ::job::jobToken --store sscArtifactId
-          # Consulta ID do Ultimo Artefacto
-          fcli ssc artifact list --appversion ${{ env.App-Version  }} --query "['scanTypes'].contains('SCA')" --output 'expr={id}\n' > out.txt
-          # Recuperação do Ultimo Artefacto Scaneado
-          # run: fcli ssc artifact download "$(head -1 out.txt)" -f='app.fpr'
+          echo "Consulta ID do Ultimo Artefacto
+          fcli ssc artifact list --appversion ${{ $(_SSC_APP_VERSION_ID)  }} --query "['scanTypes'].contains('SCA')" --output 'expr={id}\n' > out.txt
+          cat out.txt
+          echo "Recuperação do Ultimo Artefacto Scaneado
+          # fcli ssc artifact download "$(head -1 out.txt)" -f='app.fpr'
 
-          echo Setting connection with Fortify Platform
-          echo $FORTIFY_SSC_IP fortify.cyberxdemo.com >> /etc/hosts
-          #Use --insecure switch if the SSL certificate is self generated.
-          fcli ssc session login
-          fcli sc-sast session login
-          
-          scancentral package -bt mvn -o package.zip
-          fcli sc-sast scan start --publish-to=$SSC_APP_VERSION_ID --sensor-version=$SC_SAST_SENSOR_VERSION --package-file=package.zip --store=Id
-
-          fcli sc-sast scan wait-for ::Id:: --interval=30s
-          fcli ssc issue count --appversion=$SSC_APP_VERSION_ID
-
-          echo Terminating connection with Fortify Platform
-          fcli sc-sast session logout
-          fcli ssc session logout
-            
         displayName: Scan Central Scan
         continueOnError: false
