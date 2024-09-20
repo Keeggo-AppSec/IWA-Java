@@ -56,7 +56,7 @@ stages:
           goals: 'package'
 
     - job: SAST
-      displayName: Fortify SAST
+      displayName: Fortify Scancentral SAST
       dependsOn:
        - Build
       pool: Default
@@ -71,23 +71,23 @@ stages:
             fcli -V
             Write-Host --- Versão do DEBRICKED CLI ---
             debricked -v
-            Write-Host Loga no Fortify SSC e SC-SAST Controller
+            Write-Host --- Loga no Fortify SSC e SC-SAST Controller ---
             fcli ssc session login --url=${env:_FCLI_DEFAULT_SSC_URL} --ci-token=${env:_FCLI_DEFAULT_SSC_CI_TOKEN}
             fcli sc-sast session login --client-auth-token=$(_FCLI_DEFAULT_SC_SAST_CLIENT_AUTH_TOKEN) --ssc-url=${env:_FCLI_DEFAULT_SSC_URL} --ssc-ci-token=${env:_FCLI_DEFAULT_SSC_CI_TOKEN}
-            Write-Host Empacota a Aplicação para o Scancentral
+            Write-Host --- Empacota a Aplicação para o Scancentral ---
             scancentral package -o APP.zip
-            Write-Host Envia o Artefato para o Scancentral Controller
+            Write-Host --- Envia o Artefato para o Scancentral Controller ---
             fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.2 --publish-to ${env:_SSC_APP_VERSION_ID} --ssc-ci-token=${env:_FCLI_DEFAULT_SSC_CI_TOKEN} --store job:jobToken
-            Write-Host Debricked Scan
+            Write-Host --- Debricked Scan ---
             debricked scan -t ${env:_DEBRICKED_TOKEN} -r ${env:_SSC_APP_VERSION_ID} --commit $(Build.SourceVersion)
-            Write-Host Importa os Resultados Debricked no SSC  
+            Write-Host --- Importa os Resultados Debricked no SSC  
             fcli ssc artifact import-debricked -t ${env:_DEBRICKED_TOKEN} --av ${env:_SSC_APP_VERSION_ID} -r ${env:_SSC_APP_VERSION_ID} --branch $(Build.SourceBranchName)
-            Write-Host Espera Scan Fortify Acabar  
+            Write-Host --- Espera Scan Fortify Acabar ---
             fcli sc-sast scan wait-for --any-ssc-state PROCESS_COMPLETE --timeout 2h ::job::jobToken --store sscArtifactId
-            Write-Host Consulta ID do Ultimo Artefacto
+            Write-Host --- Consulta ID do Ultimo Artefacto ---
             fcli ssc artifact list --appversion ${env:_SSC_APP_VERSION_ID} --query "['scanTypes'].contains('SCA')" --output 'expr={id}\n' > out.txt
-            Write-Host Recuperação do Ultimo Artefacto Scaneado
+            Write-Host --- Recuperação do Ultimo Artefacto Scaneado ---
             $AID = Get-Content ./out.txt -First 1
             fcli ssc artifact download $AID -f='app.fpr'
-            Write-Host Envia FPR => Mobb.Ai
+            Write-Host --- Envia FPR => Mobb.Ai ---
             npx mobbdev analyze --ci --scan-file app.fpr --repo ${env:_CI_PROJECT_URL} --ref $(Build.SourceVersion) --api-key ${env:MOBB_API_KEY}
