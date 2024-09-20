@@ -29,6 +29,7 @@ stages:
           versionSpec: '17'
           jdkArchitectureOption: 'x64'
           jdkSourceOption: 'LocalDirectory'
+          jdkFile: 'D:\Tools\jdk-17.0.12.7-hotspot.zip'
           jdkDestinationDirectory: 'D:\Tools\jdk-17.0.12.7-hotspot\'
       - task: Maven@3
         inputs:
