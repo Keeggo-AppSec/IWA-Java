@@ -58,8 +58,28 @@ stages:
           DEBRICKED_TOKEN: $(_DEBRICKED_TOKEN)
           SSC_APP_VERSION_ID: $(_SSC_APP_VERSION_ID)
           SC_SAST_SENSOR_VERSION: 24.2
+          NODE: 'C:\Program Files\nodejs\node.exe'
       steps:
-      - powershell: |
-          echo 'Helllo'
+      - script: |
+          java -version
+          fcli -V
+          debricked -v
+          echo Loga no Fortify SSC e SC-SAST Controller
+          fcli ssc session login --url=$(_FCLI_DEFAULT_SSC_URL) --ci-token=$(_FCLI_DEFAULT_SSC_CI_TOKEN)
+          fcli sc-sast session login --client-auth-token=$(_FCLI_DEFAULT_SC_SAST_CLIENT_AUTH_TOKEN) --ssc-url=$(_FCLI_DEFAULT_SSC_URL) --ssc-ci-token=$(_FCLI_DEFAULT_SSC_CI_TOKEN)
+          echo Empacota a Aplicação para o Scancentral
+          scancentral package --build-tool none -o APP.zip
+          echo Envia o Artefato para o Scancentral Controller
+          fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.2 --publish-to $(_SSC_APP_VERSION_ID) --ssc-ci-token=$(_FCLI_DEFAULT_SSC_CI_TOKEN) --store job:jobToken
+          echo Debricked Scan
+          debricked scan -t $(_DEBRICKED_TOKEN) -r=$(_SSC_APP_VERSION_ID) --commit=$(Build.SourceVersion)
+          echo Importa os Resultados Debricked no SSC  
+          fcli ssc artifact import-debricked -t $(_DEBRICKED_TOKEN) --av=$(_SSC_APP_VERSION_ID) -r=$(_SSC_APP_VERSION_ID) --branch=$(Build.SourceBranchName)
+          echo Espera Scan Fortify Acabar  
+          fcli sc-sast scan wait-for --any-ssc-state PROCESS_COMPLETE --timeout 2h ::job::jobToken --store sscArtifactId
+          echo Consulta ID do Ultimo Artefacto
+          fcli ssc artifact list --appversion $(_SSC_APP_VERSION_ID) --query "['scanTypes'].contains('SCA')" --output 'expr={id}\n' > out.txt
+          echo Recuperação do Ultimo Artefacto Scaneado
+          # run: fcli ssc artifact download "$(head -1 out.txt)" -f='app.fpr'
         displayName: Scan Central Scan
         continueOnError: true
