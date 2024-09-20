@@ -66,9 +66,9 @@ stages:
             Write-Host Envia o Artefato para o Scancentral Controller
             fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.2 --publish-to ${env:_SSC_APP_VERSION_ID} --ssc-ci-token=${env:_FCLI_DEFAULT_SSC_CI_TOKEN} --store job:jobToken
             Write-Host Debricked Scan
-            debricked scan -t ${env:_DEBRICKED_TOKEN} -r=${env:_SSC_APP_VERSION_ID} --commit=$(Build.SourceVersion)
+            debricked scan -t ${env:_DEBRICKED_TOKEN} -r ${env:_SSC_APP_VERSION_ID} --commit $(Build.SourceVersion)
             Write-Host Importa os Resultados Debricked no SSC  
-            fcli ssc artifact import-debricked -t ${env:_DEBRICKED_TOKEN} --av=${env:_SSC_APP_VERSION_ID} -r=${env:_SSC_APP_VERSION_ID} --branch=$(Build.SourceBranchName)
+            fcli ssc artifact import-debricked -t ${env:_DEBRICKED_TOKEN} --av ${env:_SSC_APP_VERSION_ID} -r ${env:_SSC_APP_VERSION_ID} --branch $(Build.SourceBranchName)
             Write-Host Espera Scan Fortify Acabar  
             fcli sc-sast scan wait-for --any-ssc-state PROCESS_COMPLETE --timeout 2h ::job::jobToken --store sscArtifactId
             Write-Host Consulta ID do Ultimo Artefacto
