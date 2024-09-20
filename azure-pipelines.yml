@@ -31,6 +31,19 @@ stages:
           jdkSourceOption: 'LocalDirectory'
           jdkFile: 'D:\Tools\jdk-17.0.12.7-hotspot.zip'
           jdkDestinationDirectory: 'D:\Tools\jdk-17.0.12.7-hotspot\'
+      # Use Node.js ecosystem v0
+      # Finds or downloads and caches the specified version spec of Node.js and adds it to the PATH.
+      - task: NodeTool@0
+        inputs:
+          versionSource: 'spec' # 'spec' | 'fromFile'. Required. Source of version. Default: spec.
+          #versionSpec: '6.x' # string. Optional. Use when versionSource = spec. Version Spec. Default: 6.x.
+          #versionFilePath: # string. Optional. Use when versionSource = fromFile. Path to the .nvmrc file. 
+          #checkLatest: false # boolean. Check for Latest Version. Default: false.
+          #force32bit: false # boolean. Use 32 bit version on x64 agents. Default: false.
+        # Advanced
+          nodejsMirror: 'https://nodejs.org/dist' # string. Set source for Node.js binaries. Default: https://nodejs.org/dist.
+          #retryCountOnDownloadFails: '5' # string. Set retry count when nodes downloads failed. Default: 5.
+          #delayBetweenRetries: '1000' # string. Set delay between retries. Default: 1000.
       - task: Maven@4
         inputs:
           mavenPomFile: 'pom.xml'
@@ -58,7 +71,6 @@ stages:
           DEBRICKED_TOKEN: $(_DEBRICKED_TOKEN)
           SSC_APP_VERSION_ID: $(_SSC_APP_VERSION_ID)
           SC_SAST_SENSOR_VERSION: 24.2
-          NODE: 'C:\Program Files\nodejs\node.exe'
       steps:
       - script: |
           java -version
