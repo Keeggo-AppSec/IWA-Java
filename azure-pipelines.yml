@@ -65,7 +65,7 @@ stages:
           echo Envia o Artefato para o Scancentral Controller
           fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.2 --publish-to $(_SSC_APP_VERSION_ID) --ssc-ci-token=$(_FCLI_DEFAULT_SSC_CI_TOKEN) --store job:jobToken
           echo Debricked Scan
-          debricked scan -t ${{ secrets.DEBRICKED_TOKEN }} -r=$(_SSC_APP_VERSION_ID) --commit=${{ env.GITHUB_RUN_ID }}
+          debricked scan -t $(_DEBRICKED_TOKEN) -r=$(_SSC_APP_VERSION_ID) --commit=$(Build.SourceVersion)
           echo Importa os Resultados Debricked no SSC  
           fcli ssc artifact import-debricked -t $(_DEBRICKED_TOKEN) --av=$(_SSC_APP_VERSION_ID) -r=$(_SSC_APP_VERSION_ID) --branch=$(Build.SourceBranchName)
           echo Espera Scan Fortify Acabar  
