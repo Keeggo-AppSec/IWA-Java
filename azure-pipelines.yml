@@ -30,7 +30,7 @@ stages:
           mavenOptions: '-Xmx3072m'
           javaHomeOption: 'JDKVersion'
           jdkVersionOption: '1.17'
-          jdkDirectory: '%JAVA_HOME%'
+          jdkDirectory: 'C:\Program Files\Eclipse Adoptium\jdk-17.0.12.7-hotspot\'
           jdkArchitectureOption: 'x64'
           publishJUnitResults: true
           testResultsFiles: '**/surefire-reports/TEST-*.xml'
