@@ -19,11 +19,12 @@ trigger:
 stages:
 - stage: Build
   jobs:
-    - job: Build
-      displayName: Building IWA Project
+    - job: Prep
+      displayName: Preparação
       pool: Default
       steps:
-# Java tool installer v0
+
+  # Java tool installer v0
 # Acquire a specific version of Java from a user-supplied Azure blob or the tool cache and sets JAVA_HOME.
       - task: JavaToolInstaller@0
         inputs:
@@ -40,6 +41,12 @@ stages:
           #cleanDestinationDirectory: true # boolean. Optional. Use when jdkSourceOption != PreInstalled. Clean destination directory. Default: true.
           #createExtractDirectory: true # boolean. Optional. Use when jdkSourceOption != PreInstalled. Create directory for extracting. Default: true.
 
+    - job: Build
+      displayName: Building IWA Project
+      dependsOn:
+       - Prep
+      pool: Default
+      steps:
       - task: Maven@3
         inputs:
           mavenPomFile: 'pom.xml'
