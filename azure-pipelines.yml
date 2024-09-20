@@ -46,10 +46,10 @@ stages:
         options: "--add-host=https://fortify-demo-lab.keeggo.com/"
         env:
           FCLI_DEFAULT_SC_SAST_CLIENT_AUTH_TOKEN: $(_FCLI_DEFAULT_SC_SAST_CLIENT_AUTH_TOKEN)
-          FCLI_DEFAULT_SSC_USER: $(_FCLI_DEFAULT_SSC_USER)
-          FCLI_DEFAULT_SSC_PASSWORD: $(_FCLI_DEFAULT_SSC_PASSWORD)
           FCLI_DEFAULT_SSC_CI_TOKEN: $(_FCLI_DEFAULT_SSC_CI_TOKEN)
           FCLI_DEFAULT_SSC_URL: $(_FCLI_DEFAULT_SSC_URL)
+          FCLI_DEFAULT_SCC_URL: $(_FCLI_DEFAULT_SCC_URL)
+          DEBRICKED_TOKEN: $(_DEBRICKED_TOKEN)
           SSC_APP_VERSION_ID: $(_SSC_APP_VERSION_ID)
           SC_SAST_SENSOR_VERSION: 24.2
       steps:
@@ -57,24 +57,23 @@ stages:
           java -version
           fcli -V
           debricked -v
-          echo "Loga no Fortify SSC e SC-SAST Controller"
-          fcli ssc session login --url=${{ secrets.SSC_URL }} --ci-token=${{ secrets.SSC_TOKEN }}
-          fcli sc-sast session login --client-auth-token=${{ secrets.CLIENT_AUTH_TOKEN }} --ssc-url=${{ secrets.SSC_URL }} --ssc-ci-token=${{ secrets.SSC_TOKEN }}
-          echo "Empacota a Aplicação para o Scancentral
-          scancentral package -o APP.zip
-          echo "Envia o Artefato para o Scancentral Controller
-          fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.2 --publish-to ${{ $(_SSC_APP_VERSION_ID)  }} --ssc-ci-token=${{ secrets.SSC_TOKEN }} --store job:jobToken
-          echo "Debricked Scan
-          debricked scan -t ${{ secrets.DEBRICKED_TOKEN }} -r=${{ $(_SSC_APP_VERSION_ID)  }} --commit=${{ env.GITHUB_RUN_ID }}
-          echo "Importa os Resultados Debricked no SSC  
-          fcli ssc artifact import-debricked -t ${{ secrets.DEBRICKED_TOKEN }} --av=${{ $(_SSC_APP_VERSION_ID)  }} -r=${{ $(_SSC_APP_VERSION_ID)  }} --branch=$GITHUB_REF_NAME
-          echo "Espera Scan Fortify Acabar  
+          # Loga no Fortify SSC e SC-SAST Controller
+          fcli ssc session login --url=$(_FCLI_DEFAULT_SSC_URL) --ci-token=$(_FCLI_DEFAULT_SSC_CI_TOKEN)
+          fcli sc-sast session login --client-auth-token=$(_FCLI_DEFAULT_SC_SAST_CLIENT_AUTH_TOKEN) --ssc-url=$(_FCLI_DEFAULT_SSC_URL) --ssc-ci-token=$(_FCLI_DEFAULT_SSC_CI_TOKEN)
+          # Empacota a Aplicação para o Scancentral
+          scancentral package --build-tool none -o APP.zip
+          # Envia o Artefato para o Scancentral Controller
+          fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.2 --publish-to $(_SSC_APP_VERSION_ID) --ssc-ci-token=$(_FCLI_DEFAULT_SSC_CI_TOKEN) --store job:jobToken
+          # Debricked Scan
+          debricked scan -t ${{ secrets.DEBRICKED_TOKEN }} -r=$(_SSC_APP_VERSION_ID) --commit=${{ env.GITHUB_RUN_ID }}
+          # Importa os Resultados Debricked no SSC  
+          fcli ssc artifact import-debricked -t $(_DEBRICKED_TOKEN) --av=$(_SSC_APP_VERSION_ID) -r=$(_SSC_APP_VERSION_ID) --branch=$(Build.SourceBranchName)
+          # Espera Scan Fortify Acabar  
           fcli sc-sast scan wait-for --any-ssc-state PROCESS_COMPLETE --timeout 2h ::job::jobToken --store sscArtifactId
-          echo "Consulta ID do Ultimo Artefacto
-          fcli ssc artifact list --appversion ${{ $(_SSC_APP_VERSION_ID)  }} --query "['scanTypes'].contains('SCA')" --output 'expr={id}\n' > out.txt
-          cat out.txt
-          echo "Recuperação do Ultimo Artefacto Scaneado
-          # fcli ssc artifact download "$(head -1 out.txt)" -f='app.fpr'
+          # Consulta ID do Ultimo Artefacto
+          fcli ssc artifact list --appversion $(_SSC_APP_VERSION_ID) --query "['scanTypes'].contains('SCA')" --output 'expr={id}\n' > out.txt
+          # Recuperação do Ultimo Artefacto Scaneado
+          # run: fcli ssc artifact download "$(head -1 out.txt)" -f='app.fpr'
 
         displayName: Scan Central Scan
         continueOnError: false
