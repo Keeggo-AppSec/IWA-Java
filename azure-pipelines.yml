@@ -52,11 +52,11 @@ stages:
         inputs:
           targetType: 'inline'
           script: |
-            Write-Host ### Versão do Java ###
+            Write-Host --- Versão do Java ---
             java -version
-            Write-Host ### Versão do FCLI ###
+            Write-Host --- Versão do FCLI ---
             fcli -V
-            Write-Host ### Versão do DEBRICKED CLI ###
+            Write-Host --- Versão do DEBRICKED CLI ---
             debricked -v
             Write-Host Loga no Fortify SSC e SC-SAST Controller
             fcli ssc session login --url=${env:_FCLI_DEFAULT_SSC_URL} --ci-token=${env:_FCLI_DEFAULT_SSC_CI_TOKEN}
