@@ -85,9 +85,9 @@ stages:
             Write-Host --- Espera Scan Fortify Acabar ---
             fcli sc-sast scan wait-for --any-ssc-state PROCESS_COMPLETE --timeout 2h ::job::jobToken --store sscArtifactId
             Write-Host --- Consulta ID do Ultimo Artefacto ---
-            fcli ssc artifact list --appversion ${env:_SSC_APP_VERSION_ID} --query "['scanTypes'].contains('SCA')" --output 'expr={id}\n' > out.txt
+            fcli ssc appversion refresh-metrics ${env:_SSC_APP_VERSION_ID}
+            fcli ssc issue list --appversion=${env:_SSC_APP_VERSION_ID}
             Write-Host --- Recuperação do Ultimo Artefacto Scaneado ---
-            $AID = Get-Content ./out.txt -First 1
-            fcli ssc artifact download $AID -f='app.fpr'
+            fcli ssc appversion download-state --include-sources --file='app.fpr' ${env:_SSC_APP_VERSION_ID}
             Write-Host --- Envia FPR => Mobb.Ai ---
             npx mobbdev analyze --ci --scan-file app.fpr --repo ${env:_CI_PROJECT_URL} --ref $(Build.SourceVersion) --api-key ${env:MOBB_API_KEY}
