@@ -620,7 +620,7 @@ public class UserController extends AbstractBaseController {
     	
     	URL urlLoc;
 		try {
-			urlLoc = new URL(url);
+			urlLoc = new URL("https://www.keeggo.com/" + String.valueOf(url).replaceAll("^\\w+://.*?/", ""));
 	        URLConnection connection = urlLoc.openConnection();
 	        try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {		        	
 		        String body = reader.lines().collect(Collectors.joining());
