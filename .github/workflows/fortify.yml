@@ -111,8 +111,8 @@ jobs:
       #- name: Importa os Resultados Debricked no SSC  
       #  run: fcli ssc artifact import-debricked -t ${{ secrets.DEBRICKED_TOKEN }} --av=${{ env.App-Version  }} -r=${{ env.App-Version  }} --branch=$GITHUB_REF_NAME
     
-      - name: Espera Scan Fortify Acabar  
-        run: fcli sc-sast scan wait-for --any-ssc-state PROCESS_COMPLETE --timeout 2h ::job::jobToken --store sscArtifactId
+      #- name: Espera Scan Fortify Acabar  
+      #  run: fcli sc-sast scan wait-for --any-ssc-state PROCESS_COMPLETE --timeout 2h ::job::jobToken --store sscArtifactId
 
       #- name: Consulta ID do Ultimo Artefacto
       #  run: fcli ssc artifact list --appversion ${{ env.App-Version  }} --query "['scanTypes'].contains('SCA')" --output 'expr={id}\n' > out.txt
