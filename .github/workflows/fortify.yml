@@ -26,6 +26,11 @@ on:
 jobs:
   AppSec-Stack:
     runs-on: ubuntu-latest
+    container:
+    # A Docker image with Semgrep installed. Do not change this.
+    image: semgrep/semgrep
+    # Skip any PR created by dependabot to avoid permission issues:
+    if: (github.actor != 'dependabot[bot]')
     permissions:
       actions: read
       contents: read
@@ -37,7 +42,7 @@ jobs:
       # Check out source code
       - name: Check Out Source Code
         uses: actions/checkout@v4
-        
+ 
       # Java
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -75,7 +80,10 @@ jobs:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
-          
+      # Semgrep
+      # Run the "semgrep scan" command on the command line of the docker image.
+      - name: Semgrep Scan
+      - run: semgrep scan --sarif --sarif-output=iwa-java.sarif  
       # Mvn    
       #- name: Cache Maven packages
       #  uses: actions/cache@v1
@@ -89,7 +97,7 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=IWA-Java -Dsonar.projectName='IWA-Java'
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=IWA-Java -Dsonar.projectName='IWA-Java' -Dsonar.sarifReportPaths=iwa-java.sarif
 
       #- name: Preparação do Pacote Fortify  
       #  run: scancentral package --build-tool none -o APP.zip
