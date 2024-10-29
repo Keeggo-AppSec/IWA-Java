@@ -63,20 +63,20 @@ jobs:
           java -version
           fcli -V
           debricked -v
-      - name: Login Fortify SSC/SC-SAST Controller  
-        run: |
-          fcli ssc session login --url=${{ secrets.SSC_URL }} --ci-token=${{ secrets.SSC_TOKEN }}
-          fcli sc-sast session login --client-auth-token=${{ secrets.CLIENT_AUTH_TOKEN }} --ssc-url=${{ secrets.SSC_URL }} --ssc-ci-token=${{ secrets.SSC_TOKEN }}
+      #- name: Login Fortify SSC/SC-SAST Controller  
+      #  run: |
+      #    fcli ssc session login --url=${{ secrets.SSC_URL }} --ci-token=${{ secrets.SSC_TOKEN }}
+      #    fcli sc-sast session login --client-auth-token=${{ secrets.CLIENT_AUTH_TOKEN }} --ssc-url=${{ secrets.SSC_URL }} --ssc-ci-token=${{ secrets.SSC_TOKEN }}
           
-      # Sonarqube
-      #- name: Cache SonarQube packages
-      #  uses: actions/cache@v1
-      #  with:
-      #    path: ~/.sonar/cache
-      #    key: ${{ runner.os }}-sonar
-      #    restore-keys: ${{ runner.os }}-sonar
+       #Sonarqube
+      - name: Cache SonarQube packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
           
-       # Mvn    
+      # Mvn    
       #- name: Cache Maven packages
       #  uses: actions/cache@v1
       #  with:
@@ -84,17 +84,17 @@ jobs:
       #    key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
       #    restore-keys: ${{ runner.os }}-m2
           
-       # Build   
-      #- name: Build and analyze
-      #  env:
-      #    SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      #    SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-      #  run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=IWA-Java -Dsonar.projectName='IWA-Java'
+      # Build   
+      - name: Build and analyze
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=IWA-Java -Dsonar.projectName='IWA-Java'
 
-      - name: Preparação do Pacote Fortify  
-        run: scancentral package --build-tool none -o APP.zip
-      - name: Envio Fortify  
-        run: fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.2 --publish-to ${{ env.App-Version  }} --ssc-ci-token=${{ secrets.SSC_TOKEN }} --store job:jobToken
+      #- name: Preparação do Pacote Fortify  
+      #  run: scancentral package --build-tool none -o APP.zip
+      #- name: Envio Fortify  
+      #  run: fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.2 --publish-to ${{ env.App-Version  }} --ssc-ci-token=${{ secrets.SSC_TOKEN }} --store job:jobToken
         
         # Dependency Track - Upload SBOM
       #- uses: DependencyTrack/gh-upload-sbom@v3.0.0
@@ -120,22 +120,22 @@ jobs:
       #  run: fcli ssc artifact download "$(head -1 out.txt)" -f='app.fpr'
         
       # Para Demo
-      - name: Recuperação do Ultimo Artefacto Scaneado
-        run: fcli ssc appversion download-state --include-sources --file=app.fpr ${{ env.App-Version  }}
+      # - name: Recuperação do Ultimo Artefacto Scaneado
+      #  run: fcli ssc appversion download-state --include-sources --file=app.fpr ${{ env.App-Version  }}
         
-      - name: Arquivar FPR
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: fpr
-          path: app.fpr
+      #- name: Arquivar FPR
+      #  if: always()
+      #  uses: actions/upload-artifact@v3
+      #  with:
+      #    name: fpr
+      #    path: app.fpr
         
       # Mobb Fixer
-      - name: Run Mobb on the findings and get fixes
-        if: always()
-        uses: mobb-dev/action@v1
-        with:
-          report-file: "app.fpr"
-          api-key: ${{ secrets.MOBB_API_TOKEN }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      #- name: Run Mobb on the findings and get fixes
+      #  if: always()
+      #  uses: mobb-dev/action@v1
+      #  with:
+      #    report-file: "app.fpr"
+      #    api-key: ${{ secrets.MOBB_API_TOKEN }}
+      #    github-token: ${{ secrets.GITHUB_TOKEN }}
           # scanner: fortify
