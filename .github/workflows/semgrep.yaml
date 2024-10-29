@@ -32,7 +32,7 @@ jobs:
       - name: Run in Docker container
         uses: docker://semgrep/semgrep  # Substitua pela sua imagem Docker
         with:
-          args: -v "${PWD}:/src"  semgrep scan --sarif --sarif-output=./src/iwa-java.sarif  # Substitua pelo comando que você deseja executar
+          args: semgrep scan --sarif --sarif-output=./src/iwa-java.sarif  # Substitua pelo comando que você deseja executar
       # Step 3: Setup Java
       - uses: actions/setup-java@v4
         with:
