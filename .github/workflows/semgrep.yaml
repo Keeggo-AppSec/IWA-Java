@@ -43,10 +43,14 @@ jobs:
         with:
           java-version: 17
           distribution: 'temurin'
-
-      - name: Setup Maven Action
-        uses: s4u/setup-maven-action@v3.0.0
-      - run: mvn -V
+      - name: Setup Maven
+      # You may pin to the exact commit or the version.
+      # uses: stCarolas/setup-maven@d6af6abeda15e98926a57b5aa970a96bb37f97d1
+        uses: stCarolas/setup-maven@v5
+        with:
+          # Version Spec of the version to use.  Examples: 10.x, 10.15.1, >=10.15.0
+          maven-version: 3.8.2
+                
       # Run the "semgrep scan" command on the command line of the docker image.
       - run: semgrep scan --sarif --sarif-output=iwa-java.sarif
       # Mvn    
