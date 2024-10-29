@@ -22,9 +22,8 @@ on:
 # Steps
 jobs:
   Semgrep:
-      # User definable name of this GitHub Actions job.
+    # User definable name of this GitHub Actions job.
     name: Semgrep OSS Scan
-    # If you are self-hosting, change the following `runs-on` value: 
     runs-on: ubuntu-latest
 
     container:
@@ -35,38 +34,50 @@ jobs:
     if: (github.actor != 'dependabot[bot]')
 
     steps:
+      # Step 1: Checkout the repository
       - uses: actions/checkout@v4
+
+      # Step 2: Run Semgrep scan and output the results in SARIF format
+      - run: semgrep scan --sarif --sarif-output=iwa-java.sarif
+
+      # Step 3: Setup Java
       - uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
+
+      # Step 4: Set up Maven
       - name: Set up Maven
         uses: stCarolas/setup-maven@v5
         with:
           maven-version: 3.8.2
+
+      # Step 5: Run the Maven verify phase
       - name: Run the Maven verify phase
         run: mvn --batch-mode --update-snapshots verify
-               
-      # Run the "semgrep scan" command on the command line of the docker image.
-      #- uses: actions/checkout@v4
-      - run: semgrep scan --sarif --sarif-output=iwa-java.sarif
-      # Mvn    
+
+      # Step 6: Cache Maven packages
       - name: Cache Maven packages
         uses: actions/cache@v1
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
-      #Sonarqube
+
+      # Step 7: Cache SonarQube packages
       - name: Cache SonarQube packages
         uses: actions/cache@v1
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
-      # Build   
+
+      # Step 8: Build and analyze with SonarQube
       - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=IWA-Java -Dsonar.projectName='IWA-Java' -Dsonar.sarifReportPaths=iwa-java.sarif
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+          -Dsonar.projectKey=IWA-Java \
+          -Dsonar.projectName='IWA-Java' \
+          -Dsonar.sarifReportPaths=iwa-java.sarif
