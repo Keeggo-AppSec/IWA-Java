@@ -26,18 +26,17 @@ on:
 jobs:
   AppSec-Stack:
     runs-on: ubuntu-latest
-    container:
-    # A Docker image with Semgrep installed. Do not change this.
-    image: semgrep/semgrep
-    # Skip any PR created by dependabot to avoid permission issues:
-    if: (github.actor != 'dependabot[bot]')
     permissions:
       actions: read
       contents: read
       security-events: write
     env:
       App-Version: 'IWA:java'
-
+    container:
+    # A Docker image with Semgrep installed. Do not change this.
+      image: semgrep/semgrep
+    # Skip any PR created by dependabot to avoid permission issues:
+    if: (github.actor != 'dependabot[bot]')
     steps:
       # Check out source code
       - name: Check Out Source Code
