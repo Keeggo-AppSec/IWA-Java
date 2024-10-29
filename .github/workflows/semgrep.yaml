@@ -21,25 +21,18 @@ on:
 
 # Steps
 jobs:
-  Semgrep:
+  Build:
     # User definable name of this GitHub Actions job.
     name: Semgrep OSS Scan
     runs-on: ubuntu-latest
-
-    container:
-      # A Docker image with Semgrep installed. Do not change this.
-      image: semgrep/semgrep
-
-    # Skip any PR created by dependabot to avoid permission issues:
-    if: (github.actor != 'dependabot[bot]')
-
     steps:
       # Step 1: Checkout the repository
       - uses: actions/checkout@v4
-
       # Step 2: Run Semgrep scan and output the results in SARIF format
-      - run: semgrep scan --sarif --sarif-output=iwa-java.sarif
-
+      - name: Run in Docker container
+        uses: docker://semgrep/semgrep  # Substitua pela sua imagem Docker
+        with:
+          args: -v "${PWD}:/src"  semgrep scan --sarif --sarif-output=./src/iwa-java.sarif  # Substitua pelo comando que você deseja executar
       # Step 3: Setup Java
       - uses: actions/setup-java@v4
         with:
@@ -80,4 +73,4 @@ jobs:
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
           -Dsonar.projectKey=IWA-Java \
           -Dsonar.projectName='IWA-Java' \
-          -Dsonar.sarifReportPaths=iwa-java.sarif
+          -Dsonar.sarifReportPaths='iwa-java.sarif'
