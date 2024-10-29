@@ -1,0 +1,55 @@
+################################################################################################################################################
+# Template de Github Actions - Stack Completa de AppSec
+# Elaboração:
+# Emerson Xavier - emerson.xavier@keeggo.com
+# Michel Santana - michel.santana@keeggo.com
+#
+# Stack de Ferramentas de App Sec:
+# - Checkout do Código
+# - Semgrep Scan Export Sarif
+# - Build da Aplicação Java
+# - SonarQube - Análise de Qualidade do Código
+#
+#
+################################################################################################################################################
+
+name: Semgrep + Sonar
+
+# Gatilho de Disparo
+on:
+  workflow_dispatch:
+
+# Steps
+jobs:
+  Semgrep:
+      # User definable name of this GitHub Actions job.
+    name: Semgrep OSS Scan
+    # If you are self-hosting, change the following `runs-on` value: 
+    runs-on: ubuntu-latest
+
+    container:
+      # A Docker image with Semgrep installed. Do not change this.
+      image: semgrep/semgrep
+
+    # Skip any PR created by dependabot to avoid permission issues:
+    if: (github.actor != 'dependabot[bot]')
+
+    steps:
+      # Fetch project source with GitHub Actions Checkout. Use either v3 or v4.
+      - uses: actions/checkout@v4
+      # Run the "semgrep scan" command on the command line of the docker image.
+      - run: semgrep scan --sarif --sarif-output=iwa-java.sarif 
+
+      #Sonarqube
+      - name: Cache SonarQube packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      # Build   
+      - name: Build and analyze
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=IWA-Java -Dsonar.projectName='IWA-Java' -Dsonar.sarifReportPaths=iwa-java.sarif
