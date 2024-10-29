@@ -39,17 +39,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # Step 4: Set up Maven
-      - name: Set up Maven
-        uses: stCarolas/setup-maven@v5
-        with:
-          maven-version: 3.8.2
-
-      # Step 5: Run the Maven verify phase
-      - name: Run the Maven verify phase
-        run: mvn --batch-mode --update-snapshots verify
-
-      # Step 6: Cache Maven packages
+      # Step 4: Cache Maven packages
       - name: Cache Maven packages
         uses: actions/cache@v1
         with:
@@ -57,7 +47,7 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      # Step 7: Cache SonarQube packages
+      # Step 5: Cache SonarQube packages
       - name: Cache SonarQube packages
         uses: actions/cache@v1
         with:
@@ -65,7 +55,7 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-      # Step 8: Build and analyze with SonarQube
+      # Step 6: Build and analyze with SonarQube
       - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
