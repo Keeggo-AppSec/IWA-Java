@@ -61,6 +61,6 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-          -Dsonar.projectKey=IWA-Java \
+          -Dsonar.projectKey='IWA-Java' \
           -Dsonar.projectName='IWA-Java' \
           -Dsonar.sarifReportPaths='iwa-java.sarif'
