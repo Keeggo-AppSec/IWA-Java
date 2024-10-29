@@ -45,7 +45,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Setup Maven Action
-        uses: s4u/setup-maven-action@v3.9.9
+        uses: s4u/setup-maven-action@v3.0.0
       - run: mvn -V
       # Run the "semgrep scan" command on the command line of the docker image.
       - run: semgrep scan --sarif --sarif-output=iwa-java.sarif
