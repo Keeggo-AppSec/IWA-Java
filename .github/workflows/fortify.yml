@@ -24,6 +24,26 @@ on:
 
 # Steps
 jobs:
+  Semgrep:
+      # User definable name of this GitHub Actions job.
+    name: semgrep-oss/scan
+    # If you are self-hosting, change the following `runs-on` value: 
+    runs-on: ubuntu-latest
+
+    container:
+      # A Docker image with Semgrep installed. Do not change this.
+      image: semgrep/semgrep
+
+    # Skip any PR created by dependabot to avoid permission issues:
+    if: (github.actor != 'dependabot[bot]')
+
+    steps:
+      # Fetch project source with GitHub Actions Checkout. Use either v3 or v4.
+      - uses: actions/checkout@v4
+      # Run the "semgrep scan" command on the command line of the docker image.
+      - run: semgrep scan --sarif --sarif-output=iwa-java.sarif  
+
+
   AppSec-Stack:
     runs-on: ubuntu-latest
     permissions:
@@ -32,11 +52,7 @@ jobs:
       security-events: write
     env:
       App-Version: 'IWA:java'
-    container:
-    # A Docker image with Semgrep installed. Do not change this.
-      image: semgrep/semgrep
-    # Skip any PR created by dependabot to avoid permission issues:
-    if: (github.actor != 'dependabot[bot]')
+
     steps:
       # Check out source code
       - name: Check Out Source Code
@@ -79,10 +95,7 @@ jobs:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
-      # Semgrep
-      # Run the "semgrep scan" command on the command line of the docker image.
-      - name: Semgrep Scan
-      - run: semgrep scan --sarif --sarif-output=iwa-java.sarif  
+
       # Mvn    
       #- name: Cache Maven packages
       #  uses: actions/cache@v1
