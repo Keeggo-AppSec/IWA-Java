@@ -35,15 +35,16 @@ jobs:
     if: (github.actor != 'dependabot[bot]')
 
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-    - name: Run the Maven verify phase
-      run: mvn --batch-mode --update-snapshots verify
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Run the Maven verify phase
+        run: mvn --batch-mode --update-snapshots verify
                
       # Run the "semgrep scan" command on the command line of the docker image.
+      #- uses: actions/checkout@v4
       - run: semgrep scan --sarif --sarif-output=iwa-java.sarif
       # Mvn    
       - name: Cache Maven packages
