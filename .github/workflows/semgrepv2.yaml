@@ -24,19 +24,14 @@ on:
 
 # Steps
 jobs:
-  Semgrep_AppSec_Stack:
-      # User definable name of this GitHub Actions job.
-    name: semgrep-oss/scan
-    # If you are self-hosting, change the following `runs-on` value: 
+ Build:
     runs-on: ubuntu-latest
-
-    container:
-      # A Docker image with Semgrep installed. Do not change this.
-      image: semgrep/semgrep
-
-    # Skip any PR created by dependabot to avoid permission issues:
-    if: (github.actor != 'dependabot[bot]')
-
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    env:
+          App-Version: 'IWA:java'
     steps:
     # Check out source code
       - name: Check Out Source Code
@@ -81,5 +76,19 @@ jobs:
           projectName: "IWA"
           projectVersion: "java"
           
+ Semgrep_AppSec_Stack:
+      # User definable name of this GitHub Actions job.
+    name: semgrep-oss/scan
+    # If you are self-hosting, change the following `runs-on` value: 
+    runs-on: ubuntu-latest
+    needs: [Build]
+    container:
+      # A Docker image with Semgrep installed. Do not change this.
+      image: semgrep/semgrep
+
+    # Skip any PR created by dependabot to avoid permission issues:
+    if: (github.actor != 'dependabot[bot]')
+
       # Run the "semgrep scan" command on the command line of the docker image.
-      - run: semgrep scan --sarif --sarif-output=iwa-java.sarif  
+    steps:
+    - run: semgrep scan --sarif --sarif-output=iwa-java.sarif  
