@@ -24,7 +24,7 @@ on:
 
 # Steps
 jobs:
-  Semgrep AppSec Stack:
+  Semgrep_AppSec_Stack:
       # User definable name of this GitHub Actions job.
     name: semgrep-oss/scan
     # If you are self-hosting, change the following `runs-on` value: 
