@@ -1,4 +1,30 @@
-  Semgrep:
+
+################################################################################################################################################
+# Template de Github Actions - Stack Completa de AppSec
+# Elaboração:
+# Emerson Xavier - emerson.xavier@keeggo.com
+# Michel Santana - michel.santana@keeggo.com
+#
+# Stack de Ferramentas de App Sec:
+# - Checkout do Código
+# - Build da Aplicação Java
+# - SonarQube - Análise de Qualidade do Código
+# - OWASP Dependency Track - Análise de Componentes de Terceiros
+# - Semgrep OSS - SAST Scan
+# - Mobb Fixer - Correção Automatizada de Código
+#
+#
+################################################################################################################################################
+
+name: AppSec - Pipeline
+
+# Gatilho de Disparo
+on:
+  workflow_dispatch:
+
+# Steps
+jobs:
+  Semgrep AppSec Stack:
       # User definable name of this GitHub Actions job.
     name: semgrep-oss/scan
     # If you are self-hosting, change the following `runs-on` value: 
@@ -12,7 +38,48 @@
     if: (github.actor != 'dependabot[bot]')
 
     steps:
-      # Fetch project source with GitHub Actions Checkout. Use either v3 or v4.
-      - uses: actions/checkout@v4
+    # Check out source code
+      - name: Check Out Source Code
+        uses: actions/checkout@v4
+ 
+      # Java
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+      
+       #Sonarqube
+      - name: Cache SonarQube packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      
+      # Mvn    
+      - name: Cache Maven packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      
+      # Build   
+      - name: Build and analyze
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=IWA-Java -Dsonar.projectName='IWA-Java' -Dsonar.sarifReportPaths=iwa-java.sarif
+     
+      #CDXGen para Gerar SBOM e Submeter ao DT
+      - uses: AppThreat/cdxgen-action@v1
+        with:
+          output: "./reports/bom.xml"
+          serverUrl: "fortify-demo-lab-utils.keeggo.com"
+          apiKey: ${{ secrets.DEPENDENCYTRACK_APIKEY }}
+          projectName: "IWA"
+          projectVersion: "java"
+          
       # Run the "semgrep scan" command on the command line of the docker image.
       - run: semgrep scan --sarif --sarif-output=iwa-java.sarif  
