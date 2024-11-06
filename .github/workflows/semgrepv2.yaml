@@ -102,7 +102,7 @@ jobs:
         uses: actions/cache/save@v3
         with:
           path: ${{ github.workspace }}
-          key: '1234'
+          key: '12345'
           enableCrossOsArchive: true
           
  Semgrep_AppSec_Stack:
@@ -124,7 +124,7 @@ jobs:
       id: restore-build
       with:
           path: ${{ github.workspace }}
-          key: 1234
+          key: '12345'
     # Executa Semgrep Scan
     - run: semgrep scan --sarif --sarif-output=iwa-java.sarif
     # Importa Resultados no GH Security
