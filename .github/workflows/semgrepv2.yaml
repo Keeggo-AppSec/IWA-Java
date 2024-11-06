@@ -72,6 +72,8 @@ jobs:
         with:
           path: ${{ github.workspace }}
           key: '1234'
+          enableCrossOsArchive: true
+
  SCA:
     runs-on: ubuntu-latest
     needs: [Build]
@@ -95,13 +97,20 @@ jobs:
           apiKey: ${{ secrets.DEPENDENCYTRACK_APIKEY }}
           projectName: "IWA"
           projectVersion: "java"
+      - name: Armazena em Cache o Build
+        id: cache-build
+        uses: actions/cache/save@v3
+        with:
+          path: ${{ github.workspace }}
+          key: '1234'
+          enableCrossOsArchive: true
           
  Semgrep_AppSec_Stack:
       # User definable name of this GitHub Actions job.
     name: semgrep-oss/scan
     # If you are self-hosting, change the following `runs-on` value: 
     runs-on: ubuntu-latest
-    needs: [Build]
+    needs: [SCA]
     container:
       # A Docker image with Semgrep installed. Do not change this.
       image: semgrep/semgrep
@@ -109,7 +118,6 @@ jobs:
     # Skip any PR created by dependabot to avoid permission issues:
     if: (github.actor != 'dependabot[bot]')
 
-      # Run the "semgrep scan" command on the command line of the docker image.
     steps:
     # Restaura Cache de Build
     - uses: actions/cache/restore@v3
