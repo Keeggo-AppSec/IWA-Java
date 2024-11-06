@@ -24,26 +24,6 @@ on:
 
 # Steps
 jobs:
-  Semgrep:
-      # User definable name of this GitHub Actions job.
-    name: semgrep-oss/scan
-    # If you are self-hosting, change the following `runs-on` value: 
-    runs-on: ubuntu-latest
-
-    container:
-      # A Docker image with Semgrep installed. Do not change this.
-      image: semgrep/semgrep
-
-    # Skip any PR created by dependabot to avoid permission issues:
-    if: (github.actor != 'dependabot[bot]')
-
-    steps:
-      # Fetch project source with GitHub Actions Checkout. Use either v3 or v4.
-      - uses: actions/checkout@v4
-      # Run the "semgrep scan" command on the command line of the docker image.
-      - run: semgrep scan --sarif --sarif-output=iwa-java.sarif  
-
-
   AppSec-Stack:
     runs-on: ubuntu-latest
     permissions:
@@ -78,15 +58,15 @@ jobs:
           bugtracker-utility: skip
           debricked-cli: latest
 
-      - name: Utilitários Instalados
+      - name: Printa Versão dos Utilitários Instalados
         run: |
           java -version
           fcli -V
           debricked -v
-      #- name: Login Fortify SSC/SC-SAST Controller  
-      #  run: |
-      #    fcli ssc session login --url=${{ secrets.SSC_URL }} --ci-token=${{ secrets.SSC_TOKEN }}
-      #    fcli sc-sast session login --client-auth-token=${{ secrets.CLIENT_AUTH_TOKEN }} --ssc-url=${{ secrets.SSC_URL }} --ssc-ci-token=${{ secrets.SSC_TOKEN }}
+      - name: Login Fortify SSC/SC-SAST Controller  
+        run: |
+          fcli ssc session login --url=${{ secrets.SSC_URL }} --ci-token=${{ secrets.SSC_TOKEN }}
+          fcli sc-sast session login --client-auth-token=${{ secrets.CLIENT_AUTH_TOKEN }} --ssc-url=${{ secrets.SSC_URL }} --ssc-ci-token=${{ secrets.SSC_TOKEN }}
           
        #Sonarqube
       - name: Cache SonarQube packages
@@ -97,12 +77,12 @@ jobs:
           restore-keys: ${{ runner.os }}-sonar
 
       # Mvn    
-      #- name: Cache Maven packages
-      #  uses: actions/cache@v1
-      #  with:
-      #    path: ~/.m2
-      #    key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-      #    restore-keys: ${{ runner.os }}-m2
+      - name: Cache Maven packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
           
       # Build   
       - name: Build and analyze
@@ -111,51 +91,51 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=IWA-Java -Dsonar.projectName='IWA-Java' -Dsonar.sarifReportPaths=iwa-java.sarif
 
-      #- name: Preparação do Pacote Fortify  
-      #  run: scancentral package --build-tool none -o APP.zip
-      #- name: Envio Fortify  
-      #  run: fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.2 --publish-to ${{ env.App-Version  }} --ssc-ci-token=${{ secrets.SSC_TOKEN }} --store job:jobToken
+      - name: Preparação do Pacote Fortify  
+        run: scancentral package --build-tool none -o APP.zip
+      - name: Envio Fortify  
+        run: fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.2 --publish-to ${{ env.App-Version  }} --ssc-ci-token=${{ secrets.SSC_TOKEN }} --store job:jobToken
         
-        # Dependency Track - Upload SBOM
-      #- uses: DependencyTrack/gh-upload-sbom@v3.0.0
-      #  with:
-      #    serverHostname: 'fortify-demo-lab-utils.keeggo.com'
-      #    apiKey: ${{ secrets.DEPENDENCYTRACK_APIKEY }}
-      #    projectName: 'IWA'
-      #    projectVersion: 'java'
-      #    bomFilename: "./target/bom.xml"
-      #   autoCreate: true
+      # Dependency Track - Upload SBOM
+      - uses: DependencyTrack/gh-upload-sbom@v3.0.0
+        with:
+          serverHostname: 'fortify-demo-lab-utils.keeggo.com'
+          apiKey: ${{ secrets.DEPENDENCYTRACK_APIKEY }}
+          projectName: 'IWA'
+          projectVersion: 'java'
+          bomFilename: "./target/bom.xml"
+          autoCreate: true
 
-      #- name: Debricked Scan
-      #  run: debricked scan -t ${{ secrets.DEBRICKED_TOKEN }} -r=${{ env.App-Version  }} --commit=${{ env.GITHUB_RUN_ID }}
-      #- name: Importa os Resultados Debricked no SSC  
-      #  run: fcli ssc artifact import-debricked -t ${{ secrets.DEBRICKED_TOKEN }} --av=${{ env.App-Version  }} -r=${{ env.App-Version  }} --branch=$GITHUB_REF_NAME
+      - name: Debricked Scan
+        run: debricked scan -t ${{ secrets.DEBRICKED_TOKEN }} -r=${{ env.App-Version  }} --commit=${{ env.GITHUB_RUN_ID }}
+      - name: Importa os Resultados Debricked no SSC  
+        run: fcli ssc artifact import-debricked -t ${{ secrets.DEBRICKED_TOKEN }} --av=${{ env.App-Version  }} -r=${{ env.App-Version  }} --branch=$GITHUB_REF_NAME
     
-      #- name: Espera Scan Fortify Acabar  
-      #  run: fcli sc-sast scan wait-for --any-ssc-state PROCESS_COMPLETE --timeout 2h ::job::jobToken --store sscArtifactId
+      - name: Espera Scan Fortify Acabar  
+        run: fcli sc-sast scan wait-for --any-ssc-state PROCESS_COMPLETE --timeout 2h ::job::jobToken --store sscArtifactId
 
-      #- name: Consulta ID do Ultimo Artefacto
-      #  run: fcli ssc artifact list --appversion ${{ env.App-Version  }} --query "['scanTypes'].contains('SCA')" --output 'expr={id}\n' > out.txt
-      #- name: Recuperação do Ultimo Artefacto Scaneado
-      #  run: fcli ssc artifact download "$(head -1 out.txt)" -f='app.fpr'
+      - name: Consulta ID do Ultimo Artefacto
+        run: fcli ssc artifact list --appversion ${{ env.App-Version  }} --query "['scanTypes'].contains('SCA')" --output 'expr={id}\n' > out.txt
+      - name: Recuperação do Ultimo Artefacto Scaneado
+        run: fcli ssc artifact download "$(head -1 out.txt)" -f='app.fpr'
         
       # Para Demo
-      # - name: Recuperação do Ultimo Artefacto Scaneado
-      #  run: fcli ssc appversion download-state --include-sources --file=app.fpr ${{ env.App-Version  }}
+      - name: Recuperação do Ultimo Artefacto Scaneado
+        run: fcli ssc appversion download-state --include-sources --file=app.fpr ${{ env.App-Version  }}
         
-      #- name: Arquivar FPR
-      #  if: always()
-      #  uses: actions/upload-artifact@v3
-      #  with:
-      #    name: fpr
-      #    path: app.fpr
+      - name: Arquivar FPR
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: fpr
+          path: app.fpr
         
       # Mobb Fixer
-      #- name: Run Mobb on the findings and get fixes
-      #  if: always()
-      #  uses: mobb-dev/action@v1
-      #  with:
-      #    report-file: "app.fpr"
-      #    api-key: ${{ secrets.MOBB_API_TOKEN }}
-      #    github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run Mobb on the findings and get fixes
+        if: always()
+        uses: mobb-dev/action@v1
+        with:
+          report-file: "app.fpr"
+          api-key: ${{ secrets.MOBB_API_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           # scanner: fortify
