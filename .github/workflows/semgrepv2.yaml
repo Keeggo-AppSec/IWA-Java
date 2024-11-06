@@ -71,7 +71,7 @@ jobs:
         uses: actions/cache/save@v3
         with:
           path: ${{ github.workspace }}
-          key: ${{ github.sha }}
+          key: '1234'
  SCA:
     runs-on: ubuntu-latest
     needs: [Build]
@@ -86,7 +86,7 @@ jobs:
         id: restore-build
         with:
           path: ${{ github.workspace }}
-          key: ${{ github.sha }}
+          key: '1234'
       #CDXGen para Gerar SBOM e Submeter ao DT
       - uses: AppThreat/cdxgen-action@v1
         with:
@@ -95,19 +95,13 @@ jobs:
           apiKey: ${{ secrets.DEPENDENCYTRACK_APIKEY }}
           projectName: "IWA"
           projectVersion: "java"
-      - name: Armazena em Cache o Build
-        id: cache-build
-        uses: actions/cache/save@v3
-        with:
-          path: ${{ github.workspace }}
-          key: ${{ github.sha }}
           
  Semgrep_AppSec_Stack:
       # User definable name of this GitHub Actions job.
     name: semgrep-oss/scan
     # If you are self-hosting, change the following `runs-on` value: 
     runs-on: ubuntu-latest
-    needs: [SCA]
+    needs: [Build]
     container:
       # A Docker image with Semgrep installed. Do not change this.
       image: semgrep/semgrep
