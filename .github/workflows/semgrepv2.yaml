@@ -116,7 +116,7 @@ jobs:
       id: restore-build
       with:
           path: ${{ github.workspace }}
-          key: ${{ github.sha }}
+          key: 1234
     # Executa Semgrep Scan
     - run: semgrep scan --sarif --sarif-output=iwa-java.sarif
     # Importa Resultados no GH Security
