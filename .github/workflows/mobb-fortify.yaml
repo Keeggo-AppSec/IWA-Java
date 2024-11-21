@@ -1,0 +1,84 @@
+# Mobb/Fortify Fixer on pull requests
+# This workflow defines the needed steps to run Fortify on every pull request and pass the results to Mobb Fixer.
+#
+# Secrets in use (add your missing ones):
+# FORTIFY_USER - your Fortify username
+# FORTIFY_TENANT - your Fortify tenant name
+# FORTIFY_API_TOKEN - your Fortify access token
+# FORTIFY_RELEASE_ID - your Fortify app's release-id (number)
+# MOBB_API_TOKEN - your mobb user credentials (autumatially set if you forked this repo via the Mobb app)
+# GITHUB_TOKEN - automatically set by GitHub
+
+name: "Mobb/Fortify"
+
+on:
+  pull_request:
+    branches: ["*"]
+
+jobs:
+  scan-and-fix:
+    name: Scan with Fortify and fix with Mobb
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 360
+    permissions:
+      pull-requests: write
+      statuses: write
+      contents: read
+      actions: read
+
+    steps:
+      - name: Setup Java on this machine
+        uses: actions/setup-java@v3
+        with:
+          distribution: "oracle"
+          java-version: "19"
+      - name: Setup Maven on this machine
+        uses: stCarolas/setup-maven@v4.5
+        with:
+          maven-version: 3.8.6
+      - name: Setup Node on this machine
+        uses: actions/setup-node@v3.6.0
+        with:
+          node-version: 18
+      - name: Install sed
+        run: sudo apt-get update && sudo apt-get install -y sed
+
+      - name: Checkout repo to get code
+        uses: actions/checkout@v3
+
+      - name: Download Fortify uploader CLI
+        run: |
+          wget https://tools.fortify.com/scancentral/Fortify_ScanCentral_Client_21.2.0_x64.zip -O fcs.zip
+          unzip fcs.zip
+          chmod +x bin/scancentral
+          wget https://github.com/fod-dev/fod-uploader-java/releases/download/v5.4.0/FodUpload.jar -O FodUpload.jar
+
+      - name: Run Fortify SAST scan
+        run: |
+          ./bin/scancentral package -bt mvn -o fortify_package.zip
+          UPLOAD_OUTPUT=$(java -jar FodUpload.jar \
+            -z fortify_package.zip \
+            -ep SingleScanOnly \
+            -portalurl https://ams.fortify.com/ \
+            -apiurl https://api.ams.fortify.com/ \
+            -userCredentials ${{ secrets.FORTIFY_USER }} ${{ secrets.FORTIFY_API_TOKEN }} \
+            -tenantCode ${{ secrets.FORTIFY_TENANT }} \
+            -releaseId ${{ secrets.FORTIFY_RELEASE_ID }} \
+            -pp Queue)
+          SCAN_ID=$(echo "$UPLOAD_OUTPUT" | sed -n 's/Scan \([0-9]*\).*$/\1/p')
+          FORTIFY_USER=${{ secrets.FORTIFY_USER }} FORTIFY_API_TOKEN=${{ secrets.FORTIFY_API_TOKEN }} FORTIFY_TENANT=${{ secrets.FORTIFY_TENANT }} node .github/scripts/fortify-wait-fpr.js "$SCAN_ID"
+      - name: Archive fpr
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: fpr
+          path: scandata.fpr
+
+      - name: Run Mobb on the findings and get fixes
+        if: always()
+        uses: mobb-dev/action/review@v1.1
+        with:
+          report-file: "scandata.fpr"
+          api-key: ${{ secrets.MOBB_API_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          scanner: fortify
