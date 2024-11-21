@@ -248,6 +248,11 @@
             <version>${fortify.version}}</version>
         </dependency-->
         
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>[4.0.9,)</version>
+        </dependency>
     </dependencies>
 
     <profiles>
