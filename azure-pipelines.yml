@@ -77,7 +77,7 @@ stages:
             Write-Host --- Empacota a Aplicação para o Scancentral ---
             scancentral package --output APP.zip
             Write-Host --- Envia o Artefato para o Scancentral Controller ---
-            fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.2 --publish-to=${env:_SSC_APP_VERSION_ID} --ssc-ci-token=${env:_FCLI_DEFAULT_SSC_CI_TOKEN} --store=job:jobToken
+            fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.4 --publish-to=${env:_SSC_APP_VERSION_ID} --ssc-ci-token=${env:_FCLI_DEFAULT_SSC_CI_TOKEN} --store=job:jobToken
             Write-Host --- Debricked Scan ---
             debricked scan --access-token=${env:_DEBRICKED_TOKEN} --repository=${env:_SSC_APP_VERSION_ID} --commit=$(Build.SourceVersion)
             Write-Host --- Importa os Resultados Debricked no SSC  
