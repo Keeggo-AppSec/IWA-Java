@@ -52,7 +52,7 @@ jobs:
           tool-definitions: https://github.com/fortify/tool-definitions/releases/download/v1/tool-definitions.yaml.zip
           export-path: true
           fcli: latest
-          sc-client: 23.2
+          sc-client: 24.4
           fod-uploader: skip
           vuln-exporter: skip
           bugtracker-utility: skip
@@ -68,13 +68,6 @@ jobs:
           fcli ssc session login --url=${{ secrets.SSC_URL }} --ci-token=${{ secrets.SSC_TOKEN }}
           fcli sc-sast session login --client-auth-token=${{ secrets.CLIENT_AUTH_TOKEN }} --ssc-url=${{ secrets.SSC_URL }} --ssc-ci-token=${{ secrets.SSC_TOKEN }}
           
-       #Sonarqube
-      - name: Cache SonarQube packages
-        uses: actions/cache@v1
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
 
       # Mvn    
       - name: Cache Maven packages
@@ -89,7 +82,7 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=IWA-Java -Dsonar.projectName='IWA-Java' -Dsonar.sarifReportPaths=iwa-java.sarif
+        run: mvn -B verify -Dsonar.projectKey=IWA-Java -Dsonar.projectName='IWA-Java' -Dsonar.sarifReportPaths=iwa-java.sarif
 
       - name: Preparação do Pacote Fortify  
         run: scancentral package --build-tool none -o APP.zip
@@ -97,14 +90,14 @@ jobs:
         run: fcli sc-sast scan start --package-file=APP.zip --sensor-version=24.2 --publish-to ${{ env.App-Version  }} --ssc-ci-token=${{ secrets.SSC_TOKEN }} --store job:jobToken
         
       # Dependency Track - Upload SBOM
-      - uses: DependencyTrack/gh-upload-sbom@v3.0.0
-        with:
-          serverHostname: 'fortify-demo-lab-utils.keeggo.com'
-          apiKey: ${{ secrets.DEPENDENCYTRACK_APIKEY }}
-          projectName: 'IWA'
-          projectVersion: 'java'
-          bomFilename: "./target/bom.xml"
-          autoCreate: true
+      #- uses: DependencyTrack/gh-upload-sbom@v3.0.0
+      #  with:
+      #    serverHostname: 'fortify-demo-lab-utils.keeggo.com'
+      #    apiKey: ${{ secrets.DEPENDENCYTRACK_APIKEY }}
+      #    projectName: 'IWA'
+      #    projectVersion: 'java'
+      #    bomFilename: "./target/bom.xml"
+      #    autoCreate: true
 
       - name: Debricked Scan
         run: debricked scan -t ${{ secrets.DEBRICKED_TOKEN }} -r=${{ env.App-Version  }} --commit=${{ env.GITHUB_RUN_ID }}
