@@ -70,19 +70,19 @@ jobs:
           
 
       # Mvn    
-      - name: Cache Maven packages
-        uses: actions/cache@v1
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
+      #- name: Cache Maven packages
+      #  uses: actions/cache@v1
+      #  with:
+      #    path: ~/.m2
+      #    key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+      #    restore-keys: ${{ runner.os }}-m2
           
       # Build   
-      - name: Build and analyze
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: mvn -B verify -Dsonar.projectKey=IWA-Java -Dsonar.projectName='IWA-Java' -Dsonar.sarifReportPaths=iwa-java.sarif
+      #- name: Build and analyze
+        #env:
+        #  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        #  SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        #run: mvn -B verify -Dsonar.projectKey=IWA-Java -Dsonar.projectName='IWA-Java' -Dsonar.sarifReportPaths=iwa-java.sarif
 
       - name: Preparação do Pacote Fortify  
         run: scancentral package --build-tool none -o APP.zip
