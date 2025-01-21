@@ -16,7 +16,7 @@
 #
 ################################################################################################################################################
 
-name: SonarQube + Dependency Track + Debricked + Fortify + Mobb
+name: Debricked + Fortify + Mobb
 
 # Gatilho de Disparo
 on:
