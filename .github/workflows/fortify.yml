@@ -78,11 +78,11 @@ jobs:
       #    restore-keys: ${{ runner.os }}-m2
           
       # Build   
-      #- name: Build and analyze
-        #env:
-        #  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        #  SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        #run: mvn -B verify -Dsonar.projectKey=IWA-Java -Dsonar.projectName='IWA-Java' -Dsonar.sarifReportPaths=iwa-java.sarif
+      - name: Build and analyze
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: mvn clean package
 
       - name: Preparação do Pacote Fortify  
         run: scancentral package --build-tool none -o APP.zip
