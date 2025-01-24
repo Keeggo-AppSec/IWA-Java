@@ -19,8 +19,7 @@
 name: Debricked + Fortify + Mobb
 
 # Gatilho de Disparo
-on:
-  workflow_dispatch:
+on: [push]
 
 # Steps
 jobs:
