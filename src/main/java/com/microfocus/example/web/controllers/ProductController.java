@@ -52,6 +52,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Principal;
 import java.util.*;
+import org.springframework.web.util.HtmlUtils;
 
 /**
  * Controller for product pages
@@ -88,7 +89,7 @@ public class ProductController extends AbstractBaseController {
     @ResponseBody
     public ResponseEntity<String> getKeywordsContent(@Param("keywords") String keywords) {
 
-    	String retContent = "Product search using: " + keywords;
+    	String retContent = "Product search using: " + HtmlUtils.htmlEscape(HtmlUtils.htmlUnescape(String.valueOf(keywords)));
     	
         return ResponseEntity.ok().body(retContent);
     }
